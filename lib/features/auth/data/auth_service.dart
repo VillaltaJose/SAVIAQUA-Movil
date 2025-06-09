@@ -16,9 +16,11 @@ class AuthService {
 
   if (json['success'] == true) {
     final value = json['value'];
+    print("este es el json" );
+    print(json['value']);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('session_token', value['jwt']);
-    await prefs.setString('session_user', jsonEncode(value['user']));
+    await prefs.setString('session_user', jsonEncode(value['perfilUsuario']));
   } else {
     final messages = json['messages'];
     throw Exception(messages.map((m) => m['code']).join('\n'));
