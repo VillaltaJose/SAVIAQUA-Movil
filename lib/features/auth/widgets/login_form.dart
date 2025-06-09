@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:saviaqua/config/router.dart';
+import 'package:go_router/go_router.dart';
+import 'package:saviaqua/features/auth/data/auth_service.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -15,15 +16,84 @@ class _LoginFormState extends State<LoginForm> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  void _submit() {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      router.go('/home');
-      print('Email: $email | Password: $password');
+  List<String> errors = [];
+  bool loading = false;
+
+  void _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    _formKey.currentState!.save();
+
+    setState(() {
+      loading = true;
+      errors.clear();
+    });
+
+    final authService = AuthService();
+
+    try {
+      await authService.login(email, password);
+      if (!context.mounted) return;
+
+      context.go('/home');
+    } catch (e) {
+      final mensaje = e is Exception ? e.toString().replaceFirst('Exception: ', '') : 'Ocurrió un error inesperado.';
+      _mostrarModalError(mensaje);
+    } finally {
+      if (mounted) {
+        setState(() => loading = false);
+      }
     }
   }
 
   bool _obscureText = true;
+
+  void _mostrarModalError(String mensaje) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            backgroundColor: Colors.white,
+            titlePadding: const EdgeInsets.all(16),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+            actionsPadding: const EdgeInsets.only(right: 8, bottom: 8),
+            title: Row(
+              children: const [
+                Icon(Icons.error_outline, color: Colors.red, size: 28),
+                SizedBox(width: 10),
+                Text(
+                  'Error',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+            content: Text(
+              mensaje,
+              style: const TextStyle(fontSize: 16, color: Colors.black87),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.red,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text('Aceptar'),
+              ),
+            ],
+          ),
+    );
+  }
 
   @override
   void dispose() {
