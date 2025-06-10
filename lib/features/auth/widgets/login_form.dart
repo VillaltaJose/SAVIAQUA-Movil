@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:saviaqua/features/auth/data/auth_notifier.dart';
 import 'package:saviaqua/features/auth/data/auth_service.dart';
 
 class LoginForm extends StatefulWidget {
@@ -30,14 +34,25 @@ class _LoginFormState extends State<LoginForm> {
     });
 
     final authService = AuthService();
+    final authNotifier = context.read<AuthNotifier>();
 
     try {
-      await authService.login(email, password);
-      if (!context.mounted) return;
+      final result = await authService.login(email, password);
+      final token = result['token'];
+      final user = result['perfilUsuario'];
 
+      await authNotifier.login(
+        token,
+        user,
+      );
+
+      if (!context.mounted) return;
       context.go('/home');
     } catch (e) {
-      final mensaje = e is Exception ? e.toString().replaceFirst('Exception: ', '') : 'Ocurrió un error inesperado.';
+      final mensaje =
+          e is Exception
+              ? e.toString().replaceFirst('Exception: ', '')
+              : 'Ocurrió un error inesperado.';
       _mostrarModalError(mensaje);
     } finally {
       if (mounted) {

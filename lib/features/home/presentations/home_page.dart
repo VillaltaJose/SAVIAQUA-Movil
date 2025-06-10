@@ -1,22 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
-import 'package:saviaqua/features/auth/data/auth_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import 'package:saviaqua/features/auth/data/auth_notifier.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
-  Future<void> printSharedPreferences() async {
-  final prefs = await SharedPreferences.getInstance();
 
-  print('--- Contenido de SharedPreferences ---');
-  prefs.getKeys().forEach((key) {
-    print('$key: ${prefs.get(key)}');
-  });
-  print('--------------------------------------');
-}
+  void printSecureStorageContent() async {
+    const storage = FlutterSecureStorage();
+    final allValues = await storage.readAll();
+
+    print('--- Contenido de Secure Storage ---');
+    allValues.forEach((key, value) {
+      print('$key: $value');
+    });
+    print('-----------------------------------');
+  }
 
   @override
   Widget build(BuildContext context) {
+    final authNotifier = context.read<AuthNotifier>();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Inicio'),
@@ -46,13 +51,10 @@ class HomePage extends StatelessWidget {
               );
 
               if (confirm == true) {
-                final authService = AuthService();
-                await authService.logout();
+                await authNotifier.logout();
                 if (context.mounted) {
-                  printSharedPreferences();
-                  context.go(
-                    '/login',
-                  ); // Asegúrate que /login exista en tus rutas
+                  printSecureStorageContent();
+                  context.go('/login');
                 }
               }
             },
@@ -66,9 +68,9 @@ class HomePage extends StatelessWidget {
             const Text('Bienvenido a SAVIAQUA'),
             ElevatedButton(
               onPressed: () {
-                printSharedPreferences();
+                printSecureStorageContent(); 
               },
-              child: const Text('Cerrar sesión'),
+              child: const Text('Ver Storage Seguro'),
             ),
           ],
         ),

@@ -1,8 +1,10 @@
 import 'package:http_interceptor/http_interceptor.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../config/env.dart';
 
 class AuthInterceptor implements InterceptorContract {
+  final secureStorage = const FlutterSecureStorage();
+
   @override
   Future<bool> shouldInterceptRequest() async => true;
 
@@ -11,8 +13,7 @@ class AuthInterceptor implements InterceptorContract {
 
   @override
   Future<BaseRequest> interceptRequest({required BaseRequest request}) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('session_token');
+    final token = await secureStorage.read(key: 'session_token');
 
     final originalUrl = request.url.toString();
     if (!originalUrl.startsWith('http')) {
