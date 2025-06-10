@@ -3,11 +3,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:saviaqua/core/widgets/loading_overlay.dart';
 import 'package:saviaqua/features/auth/data/auth_notifier.dart';
 import 'package:saviaqua/features/auth/data/auth_service.dart';
 
 class LoginForm extends StatefulWidget {
-  const LoginForm({super.key});
+  final void Function(bool) setLoading;
+
+  const LoginForm({super.key, required this.setLoading});
 
   @override
   State<LoginForm> createState() => _LoginFormState();
@@ -21,17 +24,14 @@ class _LoginFormState extends State<LoginForm> {
   final TextEditingController _passwordController = TextEditingController();
 
   List<String> errors = [];
-  bool loading = false;
 
   void _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
     _formKey.currentState!.save();
 
-    setState(() {
-      loading = true;
-      errors.clear();
-    });
+    widget.setLoading(true);
+    errors.clear();
 
     final authService = AuthService();
     final authNotifier = context.read<AuthNotifier>();
@@ -41,10 +41,7 @@ class _LoginFormState extends State<LoginForm> {
       final token = result['token'];
       final user = result['perfilUsuario'];
 
-      await authNotifier.login(
-        token,
-        user,
-      );
+      await authNotifier.login(token, user);
 
       if (!context.mounted) return;
       context.go('/home');
@@ -56,7 +53,7 @@ class _LoginFormState extends State<LoginForm> {
       _mostrarModalError(mensaje);
     } finally {
       if (mounted) {
-        setState(() => loading = false);
+        widget.setLoading(false);
       }
     }
   }
@@ -120,102 +117,99 @@ class _LoginFormState extends State<LoginForm> {
   @override
   Widget build(BuildContext context) {
     return Form(
-      key: _formKey,
-      child: Column(
-        children: [
-          TextFormField(
-            decoration: const InputDecoration(
-              labelText: 'Correo electrónico',
-              labelStyle: TextStyle(color: Colors.black38),
-              enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.black38, width: 1),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.blue, width: 1),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.red, width: 1),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.red),
-              ),
-              
-            ),
-            cursorColor: Colors.black38,
-            style: const TextStyle(fontSize: 14),
-            keyboardType: TextInputType.emailAddress,
-            // validator:
-            //     (value) =>
-            //         value == null || !value.contains('@')
-            //             ? 'Correo inválido'
-            //             : null,
-            onSaved: (value) => email = value!.trim(),
-            onChanged: (value) {
-              setState(() {
-                _formKey.currentState!.validate();
-              });
-            },
-          ),
-          const SizedBox(height: 16),
-
-          TextFormField(
-            decoration: InputDecoration(
-              labelText: 'Contraseña',
-              labelStyle: const TextStyle(color: Colors.black38),
-              enabledBorder: const OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.black38, width: 1),
-              ),
-              focusedBorder: const OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.blue, width: 1),
-              ),
-              focusedErrorBorder: const OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.red, width: 1),
-              ),
-              errorBorder: const OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.red),
-              ),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscureText ? Icons.visibility : Icons.visibility_off,
-                  color: Colors.blue,
+        key: _formKey,
+        child: Column(
+          children: [
+            TextFormField(
+              decoration: const InputDecoration(
+                labelText: 'Correo electrónico',
+                labelStyle: TextStyle(color: Colors.black38),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.black38, width: 1),
                 ),
-                onPressed: () {
-                  setState(() {
-                    _obscureText = !_obscureText;
-                  });
-                },
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.blue, width: 1),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.red, width: 1),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.red),
+                ),
               ),
+              cursorColor: Colors.black38,
+              style: const TextStyle(fontSize: 14),
+              keyboardType: TextInputType.emailAddress,
+              // validator:
+              //     (value) =>
+              //         value == null || !value.contains('@')
+              //             ? 'Correo inválido'
+              //             : null,
+              onSaved: (value) => email = value!.trim(),
+              onChanged: (value) {
+                setState(() {
+                  _formKey.currentState!.validate();
+                });
+              },
             ),
-            cursorColor: Colors.black38,
-            obscureText: _obscureText,
-            // validator:
-            //     (value) =>
-            //         value == null || value.length < 6
-            //             ? 'Mínimo 6 caracteres'
-            //             : null,
-            onSaved: (value) => password = value!.trim(),
-          ),
-          const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _submit,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    12,
+            TextFormField(
+              decoration: InputDecoration(
+                labelText: 'Contraseña',
+                labelStyle: const TextStyle(color: Colors.black38),
+                enabledBorder: const OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.black38, width: 1),
+                ),
+                focusedBorder: const OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.blue, width: 1),
+                ),
+                focusedErrorBorder: const OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.red, width: 1),
+                ),
+                errorBorder: const OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.red),
+                ),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscureText ? Icons.visibility : Icons.visibility_off,
+                    color: Colors.blue,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscureText = !_obscureText;
+                    });
+                  },
+                ),
+              ),
+              cursorColor: Colors.black38,
+              obscureText: _obscureText,
+              // validator:
+              //     (value) =>
+              //         value == null || value.length < 6
+              //             ? 'Mínimo 6 caracteres'
+              //             : null,
+              onSaved: (value) => password = value!.trim(),
+            ),
+            const SizedBox(height: 24),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _submit,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
+                child: const Text('Iniciar sesión'),
               ),
-              child: const Text('Iniciar sesión'),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
     );
   }
 }
