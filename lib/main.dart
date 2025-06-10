@@ -26,7 +26,20 @@ class MyApp extends StatelessWidget {
       routerConfig: router,
       title: 'SAVIAQUA App',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.light(),
+      theme: ThemeData.light().copyWith(
+        textSelectionTheme: TextSelectionThemeData(
+          selectionColor: Colors.blue.withOpacity(0.3),
+          selectionHandleColor: Colors.black38,
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          focusedBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.black38),
+          ),
+          enabledBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.blue),
+          ),
+        ),
+      ),
       darkTheme: ThemeData.dark(),
       themeMode: ThemeMode.light,
     );

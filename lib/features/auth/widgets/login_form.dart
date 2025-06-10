@@ -139,6 +139,7 @@ class _LoginFormState extends State<LoginForm> {
               errorBorder: OutlineInputBorder(
                 borderSide: BorderSide(color: Colors.red),
               ),
+              
             ),
             cursorColor: Colors.black38,
             style: const TextStyle(fontSize: 14),
@@ -185,6 +186,7 @@ class _LoginFormState extends State<LoginForm> {
                 },
               ),
             ),
+            cursorColor: Colors.black38,
             obscureText: _obscureText,
             // validator:
             //     (value) =>
@@ -200,14 +202,13 @@ class _LoginFormState extends State<LoginForm> {
             child: ElevatedButton(
               onPressed: _submit,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue, // Color del botón
-                foregroundColor: Colors.white, // Color del texto
-                //boton activado
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
                 elevation: 2,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
                     12,
-                  ), // Opción para darle bordes redondeados
+                  ),
                 ),
               ),
               child: const Text('Iniciar sesión'),
