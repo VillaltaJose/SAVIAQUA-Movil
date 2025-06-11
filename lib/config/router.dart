@@ -2,6 +2,8 @@ import 'package:go_router/go_router.dart';
 import 'package:saviaqua/features/auth/data/auth_notifier.dart';
 import 'package:saviaqua/features/auth/presentations/login_page.dart';
 import 'package:saviaqua/features/home/presentations/home_page.dart';
+import 'package:saviaqua/features/home/presentations/layout/home_layout.dart';
+import 'package:saviaqua/features/home/presentations/pages/map/pages/map_page.dart';
 
 GoRouter createRouter(AuthNotifier authNotifier) {
   return GoRouter(
@@ -17,7 +19,19 @@ GoRouter createRouter(AuthNotifier authNotifier) {
     },
     routes: [
       GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
-      GoRoute(path: '/home', builder: (_, __) => const HomePage()),
+      ShellRoute(
+        builder: (context, state, child) => HomeLayout(child: child),
+        routes: [
+          GoRoute(
+            path: '/home',
+            builder: (_, __) => const HomePage(),
+          ),
+          GoRoute(
+            path: '/home/map',
+            builder: (_, __) => const MapPage(),
+          ),
+        ],
+      ),
     ],
   );
 }
