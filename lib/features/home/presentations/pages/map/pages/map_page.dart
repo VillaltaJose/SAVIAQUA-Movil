@@ -23,21 +23,20 @@ class _MapPageState extends State<MapPage> {
   }
 
   void _abrirFiltros() async {
-  final filtros = await showModalBottomSheet<Map<String, String>>(
-    context: context,
-    isScrollControlled: true,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-    ),
-    builder: (_) => const MapFiltersSheet(),
-  );
+    final filtros = await showModalBottomSheet<Map<String, String>>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => const MapFiltersSheet(),
+    );
 
-  if (filtros != null && mounted) {
-    await Future.delayed(const Duration(milliseconds: 100));
-    _mapKey.currentState?.fetchPozos(filtros: filtros);
+    if (filtros != null && mounted) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      _mapKey.currentState?.fetchPozos(filtros: filtros);
+    }
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -46,11 +45,15 @@ class _MapPageState extends State<MapPage> {
         children: [
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
+            switchInCurve: Curves.easeInOut,
             child: _showMap ? MapView(key: _mapKey) : const TableView(),
           ),
 
-          Positioned(
-            top: 40,
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            top: _showMap ? 40 : null,
+            bottom: !_showMap ? 20 : null,
             right: 16,
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -68,7 +71,7 @@ class _MapPageState extends State<MapPage> {
                       color: Colors.black38,
                     ),
                   ),
-                const SizedBox(height: 12),
+                if (_showMap) const SizedBox(height: 12),
                 MapToggleButtons(showMap: _showMap, onToggle: _toggleView),
               ],
             ),
