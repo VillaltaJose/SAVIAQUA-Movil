@@ -19,4 +19,18 @@ class PozoService {
           ' (${response.statusCode}): ${response.reasonPhrase}');
     }
   }
+
+  Future<List<PozoModel>> getPozosFiltrados(Map<String, String> filtros) async {
+  final uri = Uri.parse('/pozos').replace(queryParameters: filtros);
+  final response = await _client.get(uri);
+
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    final parsed = PozoResponse.fromJson(data);
+    return parsed.value;
+  } else {
+    throw Exception('Error al obtener pozos filtrados');
+  }
+}
+
 }
