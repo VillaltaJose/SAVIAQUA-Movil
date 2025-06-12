@@ -45,7 +45,7 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
     } catch (e) {
       debugPrint('Error al cargar provincias: $e');
     } finally {
-      setState(() => _isLoadingProvincias = false);
+      if (mounted) setState(() => _isLoadingProvincias = false);
     }
   }
 
@@ -56,7 +56,7 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
     } catch (e) {
       debugPrint('Error al cargar ciudades: $e');
     } finally {
-      setState(() => _isLoadingCiudades = false);
+      if (mounted) setState(() => _isLoadingCiudades = false);
     }
   }
 
@@ -70,18 +70,18 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
     } catch (e) {
       debugPrint('Error al cargar parroquias: $e');
     } finally {
-      setState(() => _isLoadingParroquias = false);
+      if (mounted) setState(() => _isLoadingParroquias = false);
     }
   }
 
   Future<void> _fetchPozos() async {
     try {
       final res = await _pozoService.getPozos();
-      setState(() => juntas = res);
+      if (mounted) setState(() => juntas = res);
     } catch (e) {
       debugPrint("ERROR al cargar pozos: $e");
     } finally {
-      setState(() => _isLoadingJuntas = false);
+      if (mounted) setState(() => _isLoadingJuntas = false);
     }
   }
 
@@ -117,6 +117,21 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
 
     Navigator.pop(context, filtros);
   }
+
+  void _limpiarFiltros() {
+  setState(() {
+    selectedProvinciaId = null;
+    selectedCiudadId = null;
+    selectedParroquiaId = null;
+    selectedJuntaId = null;
+
+    ciudades = [];
+    parroquias = [];
+  });
+
+  Navigator.pop(context, <String, String>{});
+}
+
 
   InputDecoration _buildDropdownDecoration(String label, IconData icon) {
     return InputDecoration(
@@ -364,7 +379,7 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
                 ),
                 const SizedBox(width: 16),
                 ElevatedButton.icon(
-                  onPressed: _aplicarFiltro,
+                  onPressed: _limpiarFiltros,
                   icon: const Icon(LucideIcons.trash, color: Colors.white),
                   label: const Text(
                     'Limpiar filtros',

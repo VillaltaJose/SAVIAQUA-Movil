@@ -22,20 +22,22 @@ class _MapPageState extends State<MapPage> {
     });
   }
 
-  Future<void> _abrirFiltros() async {
-    final filtros = await showModalBottomSheet<Map<String, String>>(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => const MapFiltersSheet(),
-    );
+  void _abrirFiltros() async {
+  final filtros = await showModalBottomSheet<Map<String, String>>(
+    context: context,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (_) => const MapFiltersSheet(),
+  );
 
-    if (filtros != null && _mapKey.currentState != null) {
-      _mapKey.currentState!.fetchPozos(filtros: filtros);
-    }
+  if (filtros != null && mounted) {
+    await Future.delayed(const Duration(milliseconds: 100));
+    _mapKey.currentState?.fetchPozos(filtros: filtros);
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
