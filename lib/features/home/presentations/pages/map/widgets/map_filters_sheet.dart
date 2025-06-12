@@ -16,6 +16,11 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
   final LocationService _locationService = LocationService();
   final PozoService _pozoService = PozoService();
 
+  bool _isLoadingCiudades = true;
+  bool _isLoadingProvincias = true;
+  bool _isLoadingParroquias = true;
+  bool _isLoadingJuntas = true;
+
   int? selectedProvinciaId;
   int? selectedCiudadId;
   int? selectedParroquiaId;
@@ -39,6 +44,8 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
       setState(() => provincias = res.value);
     } catch (e) {
       debugPrint('Error al cargar provincias: $e');
+    } finally {
+      setState(() => _isLoadingProvincias = false);
     }
   }
 
@@ -48,6 +55,8 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
       setState(() => ciudades = res.value);
     } catch (e) {
       debugPrint('Error al cargar ciudades: $e');
+    } finally {
+      setState(() => _isLoadingCiudades = false);
     }
   }
 
@@ -60,6 +69,8 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
       setState(() => parroquias = res.value);
     } catch (e) {
       debugPrint('Error al cargar parroquias: $e');
+    } finally {
+      setState(() => _isLoadingParroquias = false);
     }
   }
 
@@ -69,6 +80,8 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
       setState(() => juntas = res);
     } catch (e) {
       debugPrint("ERROR al cargar pozos: $e");
+    } finally {
+      setState(() => _isLoadingJuntas = false);
     }
   }
 
@@ -105,17 +118,18 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
     Navigator.pop(context, filtros);
   }
 
-  InputDecoration _buildDropdownDecoration(String label) {
+  InputDecoration _buildDropdownDecoration(String label, IconData icon) {
     return InputDecoration(
       labelText: label,
-      filled: true,
-      fillColor: Colors.grey[100],
-      prefixIcon: const Icon(LucideIcons.mapPin),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
+      labelStyle: const TextStyle(fontSize: 14, color: Colors.black87),
+      prefixIcon: Icon(icon, size: 20, color: Colors.grey[700]),
+      enabledBorder: UnderlineInputBorder(
+        borderSide: BorderSide(color: Colors.grey.shade400),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      focusedBorder: UnderlineInputBorder(
+        borderSide: BorderSide(color: Colors.blue.shade400, width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(vertical: 4),
     );
   }
 
@@ -140,76 +154,202 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
               'Filtros',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 16),
+
             DropdownButtonFormField<int>(
               value: selectedJuntaId,
-              decoration: _buildDropdownDecoration('Junta'),
-              items: juntas.map((j) {
-                return DropdownMenuItem(
-                  value: j.codigo,
-                  child: Text(j.nombre),
-                );
-              }).toList(),
-              onChanged: (value) => setState(() => selectedJuntaId = value),
+              decoration: _buildDropdownDecoration('Junta', LucideIcons.mapPin),
+              dropdownColor: Colors.white,
+              style: const TextStyle(fontSize: 14, color: Colors.black87),
+              menuMaxHeight: 300,
+              items:
+                  _isLoadingJuntas
+                      ? [
+                        const DropdownMenuItem(
+                          value: null,
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Text('Cargando juntas...'),
+                            ],
+                          ),
+                        ),
+                      ]
+                      : juntas
+                          .map(
+                            (j) => DropdownMenuItem(
+                              value: j.codigo,
+                              child: Text(j.nombre),
+                            ),
+                          )
+                          .toList(),
+              onChanged:
+                  _isLoadingJuntas
+                      ? null
+                      : (value) => setState(() => selectedJuntaId = value),
             ),
-
             const SizedBox(height: 16),
+
             DropdownButtonFormField<int>(
               value: selectedProvinciaId,
-              decoration: _buildDropdownDecoration('Provincia'),
-              items: provincias.map((prov) {
-                return DropdownMenuItem(
-                      value: prov.codigo,
-                      child: Text(prov.nombre),
-                    );
-                  }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedProvinciaId = value;
-                  selectedCiudadId = null;
-                  selectedParroquiaId = null;
-                  ciudades = [];
-                  parroquias = [];
-                });
-                if (value != null) _loadCiudades(value);
-              },
+              decoration: _buildDropdownDecoration(
+                'Provincia',
+                LucideIcons.building2,
+              ),
+              dropdownColor: Colors.white,
+              style: const TextStyle(fontSize: 14, color: Colors.black87),
+              menuMaxHeight: 300,
+              items:
+                  _isLoadingProvincias
+                      ? [
+                        const DropdownMenuItem(
+                          value: null,
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Text('Cargando provincias...'),
+                            ],
+                          ),
+                        ),
+                      ]
+                      : provincias
+                          .map(
+                            (prov) => DropdownMenuItem(
+                              value: prov.codigo,
+                              child: Text(prov.nombre),
+                            ),
+                          )
+                          .toList(),
+              onChanged:
+                  _isLoadingProvincias
+                      ? null
+                      : (value) {
+                        setState(() {
+                          selectedProvinciaId = value;
+                          selectedCiudadId = null;
+                          selectedParroquiaId = null;
+                          _isLoadingCiudades = true;
+                          _isLoadingParroquias = false;
+                          ciudades = [];
+                          parroquias = [];
+                        });
+                        if (value != null) _loadCiudades(value);
+                      },
             ),
-
             const SizedBox(height: 12),
+
             DropdownButtonFormField<int>(
               value: selectedCiudadId,
-              decoration: _buildDropdownDecoration('Ciudad'),
-              items: ciudades.map((c) {
-                return DropdownMenuItem(
-                  value: c.codigo,
-                  child: Text(c.nombre),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedCiudadId = value;
-                  selectedParroquiaId = null;
-                  parroquias = [];
-                });
-                if (value != null && selectedProvinciaId != null) {
-                  _loadParroquias(selectedProvinciaId!, value);
-                }
-              },
+              decoration: _buildDropdownDecoration('Ciudad', LucideIcons.home),
+              dropdownColor: Colors.white,
+              style: const TextStyle(fontSize: 14, color: Colors.black87),
+              menuMaxHeight: 300,
+              items:
+                  _isLoadingCiudades
+                      ? [
+                        const DropdownMenuItem(
+                          value: null,
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Text('Cargando ciudades...'),
+                            ],
+                          ),
+                        ),
+                      ]
+                      : ciudades
+                          .map(
+                            (c) => DropdownMenuItem(
+                              value: c.codigo,
+                              child: Text(c.nombre),
+                            ),
+                          )
+                          .toList(),
+              onChanged:
+                  _isLoadingCiudades
+                      ? null
+                      : (value) {
+                        setState(() {
+                          selectedCiudadId = value;
+                          selectedParroquiaId = null;
+                          _isLoadingParroquias = true;
+                          parroquias = [];
+                        });
+                        if (value != null && selectedProvinciaId != null) {
+                          _loadParroquias(selectedProvinciaId!, value);
+                        }
+                      },
             ),
-
             const SizedBox(height: 12),
+
             DropdownButtonFormField<int>(
               value: selectedParroquiaId,
-              decoration: _buildDropdownDecoration('Parroquia'),
-              items: parroquias.map((p) {
-                return DropdownMenuItem(
-                  value: p.codigo,
-                  child: Text(p.nombre),
-                );
-              }).toList(),
-              onChanged: (value) => setState(() => selectedParroquiaId = value),
+              decoration: _buildDropdownDecoration(
+                'Parroquia',
+                LucideIcons.mapPin,
+              ),
+              dropdownColor: Colors.white,
+              style: const TextStyle(fontSize: 14, color: Colors.black87),
+              menuMaxHeight: 300,
+              items:
+                  _isLoadingParroquias
+                      ? [
+                        const DropdownMenuItem(
+                          value: null,
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Text('Cargando parroquias...'),
+                            ],
+                          ),
+                        ),
+                      ]
+                      : parroquias
+                          .map(
+                            (p) => DropdownMenuItem(
+                              value: p.codigo,
+                              child: Text(p.nombre),
+                            ),
+                          )
+                          .toList(),
+              onChanged:
+                  _isLoadingParroquias
+                      ? null
+                      : (value) => setState(() => selectedParroquiaId = value),
             ),
+
             const SizedBox(height: 24),
             Row(
               children: [
