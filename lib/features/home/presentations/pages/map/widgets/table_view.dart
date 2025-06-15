@@ -217,45 +217,77 @@ class _TableViewState extends State<TableView> {
                         : _pozosFiltrados.isEmpty
                         ? const Center(child: Text('No se encontraron pozos'))
                         : ListView.builder(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 8),
                           itemCount: _pozosFiltrados.length,
                           itemBuilder: (_, index) {
                             final pozo = _pozosFiltrados[index];
                             return Card(
-                              elevation: 3,
+                              elevation: 6,
                               color: Colors.white,
-                              margin: const EdgeInsets.symmetric(vertical: 8),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                              margin: const EdgeInsets.symmetric(
+                                vertical: 10,
+                                horizontal: 3,
                               ),
-                              child: ListTile(
-                                leading: const Icon(
-                                  Icons.water_drop_outlined,
-                                  color: Colors.blueAccent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                side: BorderSide(
+                                  color: Colors.grey.shade200,
+                                  width: 1.5,
                                 ),
-                                title: Text(
-                                  pozo.nombre,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
+                              ),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(16),
+                                onTap: () {
+                                  // Acción cuando se toca la card
+                                },
+                                child: ListTile(
+                                  contentPadding: const EdgeInsets.all(12),
+                                  leading: CircleAvatar(
+                                    backgroundColor: Colors.blueAccent.withOpacity(0.1),
+                                    child: const Icon(
+                                      Icons.water_drop_outlined,
+                                      color: Colors.blueAccent,
+                                      size: 28,
+                                    ),
+                                  ),
+                                  title: Text(
+                                    pozo.nombre,
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  subtitle: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Ubicación: ${pozo.provincia}, ${pozo.ciudad}, ${pozo.parroquia}',
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        'Junta: ${pozo.junta}',
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.black38,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  trailing: Text(
+                                    pozo.codigo.toString(),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: Colors.blueAccent,
+                                    ),
                                   ),
                                 ),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Ubicación: ${pozo.provincia}, ${pozo.ciudad}, ${pozo.parroquia}',
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Junta: ${pozo.junta}',
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.black38,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                trailing: Text(pozo.codigo.toString()),
                               ),
                             );
                           },
