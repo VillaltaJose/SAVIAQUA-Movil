@@ -3,8 +3,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
-import 'package:saviaqua/features/home/data/pozo_service.dart';
-import 'package:saviaqua/features/home/model/pozo_model.dart';
+import 'package:saviaqua/features/home/data/pozo_data/pozo_service.dart';
+import 'package:saviaqua/features/home/model/pozo/pozo_model.dart';
 
 class MapView extends StatefulWidget {
   const MapView({super.key});

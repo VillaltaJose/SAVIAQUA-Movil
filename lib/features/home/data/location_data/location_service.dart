@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:saviaqua/features/home/model/response_place.dart';
-import '../../../core/services/http_client.dart';
+import 'package:saviaqua/features/home/model/location/response_place.dart';
+import '../../../../core/services/http_client.dart';
 
 class LocationService {
   final http.Client _client = httpClient;

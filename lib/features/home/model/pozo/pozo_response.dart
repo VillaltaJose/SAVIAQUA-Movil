@@ -1,5 +1,5 @@
-import 'package:saviaqua/features/home/model/pozo_metada.dart';
-import 'package:saviaqua/features/home/model/pozo_model.dart';
+import 'package:saviaqua/features/home/model/pozo/pozo_metada.dart';
+import 'package:saviaqua/features/home/model/pozo/pozo_model.dart';
 
 class PozoResponse {
   final List<PozoModel> value;

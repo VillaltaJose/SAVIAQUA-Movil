@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:saviaqua/features/home/data/location_service.dart';
-import 'package:saviaqua/features/home/data/pozo_service.dart';
-import 'package:saviaqua/features/home/model/place_model.dart';
-import 'package:saviaqua/features/home/model/pozo_model.dart';
+import 'package:saviaqua/features/home/data/location_data/location_service.dart';
+import 'package:saviaqua/features/home/data/pozo_data/pozo_service.dart';
+import 'package:saviaqua/features/home/model/location/place_model.dart';
+import 'package:saviaqua/features/home/model/pozo/pozo_model.dart';
 
 class MapFiltersSheet extends StatefulWidget {
   const MapFiltersSheet({super.key});

@@ -1,5 +1,5 @@
 
-import 'package:saviaqua/features/home/model/place_model.dart';
+import 'package:saviaqua/features/home/model/location/place_model.dart';
 
 class ResponseLugar {
   final List<LugarModel> value;

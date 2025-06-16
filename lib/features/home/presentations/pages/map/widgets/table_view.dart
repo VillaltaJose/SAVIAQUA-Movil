@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:saviaqua/features/home/data/pozo_service.dart';
-import 'package:saviaqua/features/home/model/pozo_model.dart';
+import 'package:saviaqua/features/home/data/pozo_data/pozo_service.dart';
+import 'package:saviaqua/features/home/model/pozo/pozo_model.dart';
 import 'map_filters_sheet.dart';
 
 class TableView extends StatefulWidget {
@@ -217,7 +218,10 @@ class _TableViewState extends State<TableView> {
                         : _pozosFiltrados.isEmpty
                         ? const Center(child: Text('No se encontraron pozos'))
                         : ListView.builder(
-                          padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 8),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 3,
+                            horizontal: 8,
+                          ),
                           itemCount: _pozosFiltrados.length,
                           itemBuilder: (_, index) {
                             final pozo = _pozosFiltrados[index];
@@ -238,12 +242,13 @@ class _TableViewState extends State<TableView> {
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(16),
                                 onTap: () {
-                                  // Acción cuando se toca la card
+                                  context.push('/home/pozo/${pozo.codigo}');
                                 },
                                 child: ListTile(
                                   contentPadding: const EdgeInsets.all(12),
                                   leading: CircleAvatar(
-                                    backgroundColor: Colors.blueAccent.withOpacity(0.1),
+                                    backgroundColor: Colors.blueAccent
+                                        .withOpacity(0.1),
                                     child: const Icon(
                                       Icons.water_drop_outlined,
                                       color: Colors.blueAccent,
