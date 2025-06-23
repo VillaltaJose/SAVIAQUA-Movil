@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:saviaqua/features/home/data/pozo_data/pozo_service.dart';
 import 'package:saviaqua/features/home/data/pozo_detail_data/pozo_details_service.dart';
 import 'package:saviaqua/features/home/model/pozo/pozo_model.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:saviaqua/features/home/model/pozo_details/pozo_details_model.dart';
 import 'package:saviaqua/features/home/presentations/pages/pozo_detail/widgets/residual_chlorine_chart.dart';
 
