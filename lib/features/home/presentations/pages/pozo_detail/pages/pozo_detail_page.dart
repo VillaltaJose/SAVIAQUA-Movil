@@ -294,7 +294,6 @@ class _PozoDetailsPageState extends State<PozoDetailsPage> {
               'Tendencia de cloro residual',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 12),
             Container(
               height: 400,
               margin: const EdgeInsets.only(top: 8),
