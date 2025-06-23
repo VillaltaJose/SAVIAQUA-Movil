@@ -7,14 +7,14 @@ import '../../../../core/services/http_client.dart';
 class PozoDetailsService {
   final http.Client _client = httpClient;
 
-   Future<List<PozoDetailsModel>> getMeasurements(Map<String, String> filtros) async {
+  Future<List<PozoDetailsModel>> getMeasurements(
+    Map<String, String> filtros,
+  ) async {
     final uri = Uri.parse('/pozos/mediciones');
 
     final response = await _client.post(
       uri,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: {'Content-Type': 'application/json'},
       body: jsonEncode(filtros),
     );
 
@@ -25,6 +25,27 @@ class PozoDetailsService {
     } else {
       throw Exception(
         'Error al obtener mediciones'
+        ' (${response.statusCode}): ${response.reasonPhrase}',
+      );
+    }
+  }
+
+  Future<PozoDetailsModel> getMeasurementByPozoId(int codigoPozo) async {
+    final uri = Uri.parse('/pozos/mediciones');
+
+    final response = await _client.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'codigoPozo': codigoPozo}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final parsed = PozoDetailsResponse.fromJson(data);
+      return parsed.value.first;
+    } else {
+      throw Exception(
+        'Error al obtener la medicion'
         ' (${response.statusCode}): ${response.reasonPhrase}',
       );
     }

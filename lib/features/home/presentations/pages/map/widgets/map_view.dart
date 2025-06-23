@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
 import 'package:saviaqua/features/home/data/pozo_data/pozo_service.dart';
+import 'package:saviaqua/features/home/data/pozo_detail_data/pozo_details_service.dart';
 import 'package:saviaqua/features/home/model/pozo/pozo_model.dart';
+import 'package:saviaqua/features/home/model/pozo_details/pozo_details_model.dart';
 
 class MapView extends StatefulWidget {
   const MapView({super.key});
@@ -22,6 +25,10 @@ class MapViewState extends State<MapView> {
 
   Set<Marker> _markers = {};
   late BitmapDescriptor _customIcon;
+  bool isLoadingDetails = true;
+  String errorDetails = '';
+  final PozoDetailsService _pozoDetailsService = PozoDetailsService();
+  PozoDetailsModel? pozoDetailsModel;
 
   @override
   void initState() {
@@ -42,7 +49,10 @@ class MapViewState extends State<MapView> {
 
   Future<void> _loadCustomMarker() async {
     try {
-      final bytes = await getBytesFromAsset('assets/images/punto_agua2.png', 80);
+      final bytes = await getBytesFromAsset(
+        'assets/images/punto_agua2.png',
+        80,
+      );
       _customIcon = BitmapDescriptor.fromBytes(bytes);
       fetchPozos();
     } catch (e) {
@@ -52,19 +62,21 @@ class MapViewState extends State<MapView> {
 
   Future<void> fetchPozos({Map<String, String>? filtros}) async {
     try {
-      final pozos = filtros == null
-          ? await _pozoService.getPozos()
-          : await _pozoService.getPozosFiltrados(filtros);
+      final pozos =
+          filtros == null
+              ? await _pozoService.getPozos()
+              : await _pozoService.getPozosFiltrados(filtros);
 
-      final markers = pozos.map((pozo) {
-        return Marker(
-          markerId: MarkerId(pozo.codigo.toString()),
-          position: LatLng(pozo.latitude, pozo.longitude),
-          icon: _customIcon,
-          infoWindow: InfoWindow(title: pozo.nombre),
-          onTap: () => _onMarkerTapped(pozo),
-        );
-      }).toSet();
+      final markers =
+          pozos.map((pozo) {
+            return Marker(
+              markerId: MarkerId(pozo.codigo.toString()),
+              position: LatLng(pozo.latitude, pozo.longitude),
+              icon: _customIcon,
+              infoWindow: InfoWindow(title: pozo.nombre),
+              onTap: () => _onMarkerTapped(pozo),
+            );
+          }).toSet();
 
       setState(() => _markers = markers);
 
@@ -78,12 +90,45 @@ class MapViewState extends State<MapView> {
           );
         } else {
           final bounds = _getBounds(pozos);
-          _mapController.animateCamera(CameraUpdate.newLatLngBounds(bounds, 100));
+          _mapController.animateCamera(
+            CameraUpdate.newLatLngBounds(bounds, 100),
+          );
         }
       }
     } catch (e) {
       debugPrint("ERROR al cargar pozos: $e");
     }
+  }
+
+  Future<void> _fetchPozoDetailById(int pozoId) async {
+    if (mounted) {
+      setState(() {
+        isLoadingDetails = true;
+      });
+    }
+
+    try {
+      final data = await _pozoDetailsService.getMeasurementByPozoId(pozoId);
+      if (mounted) {
+        setState(() {
+          isLoadingDetails = false;
+          pozoDetailsModel = data;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          isLoadingDetails = false;
+          errorDetails = 'Error al cargar los detalles del pozo.';
+        });
+      }
+    }
+  }
+
+  Color _getCloroColor(double cloro) {
+    if (cloro < 0.2) return Colors.blue; 
+    if (cloro <= 2.0) return Colors.green; 
+    return Colors.red; 
   }
 
   LatLngBounds _getBounds(List<PozoModel> pozos) {
@@ -97,38 +142,127 @@ class MapViewState extends State<MapView> {
     );
   }
 
-  void _onMarkerTapped(PozoModel pozo) {
+  void _onMarkerTapped(PozoModel pozo) async {
+    final pozoDetailsModel = await PozoDetailsService().getMeasurementByPozoId(
+      pozo.codigo,
+    );
+    if (!context.mounted) return;
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => Container(
-        padding: const EdgeInsets.all(16),
-        height: 200,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(pozo.nombre,
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Text(
-              'Provincia: ${pozo.provincia}\nCantón: ${pozo.ciudad}\nParroquia: ${pozo.parroquia}',
+      backgroundColor: Colors.white,
+      builder:
+          (_) => Container(
+            padding: const EdgeInsets.all(16),
+            height: 240,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Título principal: nombre de la junta
+                Text(
+                  pozo.nombre,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue,
+                  ),
+                ),
+                const SizedBox(height: 6),
+
+                // Subtítulo: ubicación
+                Text(
+                  '${pozo.ciudad}, ${pozo.provincia} - ${pozo.parroquia}',
+                  style: const TextStyle(fontSize: 14, color: Colors.black54),
+                ),
+
+                // Panel de cloro residual
+                if (pozoDetailsModel != null) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _getCloroColor(
+                        pozoDetailsModel.cloroResidual,
+                      ).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.water_drop,
+                          size: 24,
+                          color: _getCloroColor(pozoDetailsModel.cloroResidual),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Cloro residual: ${pozoDetailsModel.cloroResidual.toStringAsFixed(2)} ppm',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: _getCloroColor(
+                                    pozoDetailsModel.cloroResidual,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Medido el: ${pozoDetailsModel.fechaRegistro.toLocal().toString().substring(0, 19)}',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                const Spacer(),
+
+                // Botón "Ver más"
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onPressed: () {
+                      context.push('/home/pozo/${pozo.codigo}');
+                    },
+                    icon: const Icon(
+                      Icons.arrow_forward_ios,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                    label: const Text(
+                      'Ver más',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const Spacer(),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  // TODO: navegar a detalle del pozo
-                },
-                child: const Text('Ver más'),
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 
