@@ -1,7 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:saviaqua/features/auth/data/auth_notifier.dart';
 import 'package:saviaqua/features/auth/presentations/login_page.dart';
-import 'package:saviaqua/features/home/model/pozo/pozo_model.dart';
 import 'package:saviaqua/features/home/presentations/home_page.dart';
 import 'package:saviaqua/features/home/presentations/layout/home_layout.dart';
 import 'package:saviaqua/features/home/presentations/pages/map/pages/map_page.dart';

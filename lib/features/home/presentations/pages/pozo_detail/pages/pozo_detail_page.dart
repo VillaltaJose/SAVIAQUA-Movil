@@ -30,6 +30,9 @@ class _PozoDetailsPageState extends State<PozoDetailsPage> {
   String errorPozo = '';
   String errorDetails = '';
 
+  DateTime? startDate;
+  DateTime? endDate;
+
   @override
   void initState() {
     super.initState();
@@ -40,24 +43,17 @@ class _PozoDetailsPageState extends State<PozoDetailsPage> {
   Future<void> _fetchPozo() async {
     try {
       final fetchedPozo = await _pozoService.getPozoById(widget.pozoId);
-
-      if (fetchedPozo == null) {
-        if (mounted) {
-          setState(() {
-            isLoadingPozo = false;
-            errorPozo = 'Pozo no encontrado';
-          });
-        }
-        return;
-      }
-
       if (mounted) {
         setState(() {
-          pozo = fetchedPozo;
           isLoadingPozo = false;
+          if (fetchedPozo == null) {
+            errorPozo = 'Pozo no encontrado';
+          } else {
+            pozo = fetchedPozo;
+          }
         });
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
         setState(() {
           isLoadingPozo = false;
@@ -67,14 +63,14 @@ class _PozoDetailsPageState extends State<PozoDetailsPage> {
     }
   }
 
-  Future<void> _fetchPozoDetails() async {
+  Future<void> _fetchPozoDetails({DateTime? inicio, DateTime? fin}) async {
     final now = DateTime.now();
     final lastMonth = now.subtract(const Duration(days: 30));
 
     final filtros = {
       'codigoPozo': widget.pozoId.toString(),
-      'fechaInicio': lastMonth.toIso8601String(),
-      'fechaFin': now.toIso8601String(),
+      'fechaInicio': (inicio ?? lastMonth).toIso8601String(),
+      'fechaFin': (fin ?? now).toIso8601String(),
     };
 
     if (mounted) {
@@ -89,22 +85,20 @@ class _PozoDetailsPageState extends State<PozoDetailsPage> {
 
     try {
       final data = await _pozoDetailsService.getMeasurements(filtros);
-
       if (mounted) {
         setState(() {
           isLoadingDetails = false;
           if (data.isNotEmpty) {
             pozoDetails = data;
-            ultimaMedida = pozoDetails.last;
-            if (pozoDetails.length > 1) {
-              historialParaGrafico = pozoDetails.sublist(0, pozoDetails.length - 1);
-            }
+            ultimaMedida = data.last;
+            historialParaGrafico =
+                data.length > 1 ? data.sublist(0, data.length - 1) : [];
           } else {
             errorDetails = 'No se encontraron mediciones para este pozo.';
           }
         });
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
         setState(() {
           isLoadingDetails = false;
@@ -114,19 +108,63 @@ class _PozoDetailsPageState extends State<PozoDetailsPage> {
     }
   }
 
+  Future<void> _pickDateRange() async {
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      initialDateRange:
+          startDate != null && endDate != null
+              ? DateTimeRange(start: startDate!, end: endDate!)
+              : null,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Colors.green,
+              onPrimary: Colors.white,
+              onSurface: Colors.black87,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(foregroundColor: Colors.green),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        startDate = picked.start;
+        endDate = picked.end;
+      });
+
+      await _fetchPozoDetails(inicio: startDate!, fin: endDate!);
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
+  }
+
   @override
   Widget build(BuildContext context) {
+    
     if (isLoadingPozo || isLoadingDetails) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(pozo?.nombre ?? 'Detalles del Pozo'),
+        backgroundColor: Colors.white,
+        elevation: 1,
+        title: Text(
+          pozo?.nombre ?? 'Detalles del Pozo',
+          style: const TextStyle(color: Colors.blue),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.blue),
           onPressed: () => context.pop(),
         ),
       ),
@@ -135,7 +173,6 @@ class _PozoDetailsPageState extends State<PozoDetailsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // UBICACIÓN
             if (pozo != null)
               Row(
                 children: [
@@ -144,122 +181,173 @@ class _PozoDetailsPageState extends State<PozoDetailsPage> {
                   Expanded(
                     child: Text(
                       '${pozo!.ciudad}, ${pozo!.provincia} - ${pozo!.parroquia}',
-                      style: const TextStyle(fontSize: 14, color: Colors.black54),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black54,
+                      ),
                     ),
                   ),
                 ],
               ),
-
             if (errorPozo.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: Text(errorPozo, style: const TextStyle(color: Colors.red)),
-              ),
-
-            const SizedBox(height: 12),
-
-            // PANEL CLORO
-            if (ultimaMedida != null)
               Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.teal.shade50,
-                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Column(
+                child: Row(
                   children: [
-                    const Text(
-                      'Cloro residual',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${ultimaMedida!.m1.toStringAsFixed(2)} ppm',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: _getCloroColor(ultimaMedida!.m1),
+                    const Icon(Icons.warning, color: Colors.red),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        errorPozo,
+                        style: const TextStyle(color: Colors.red),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _getCloroEstado(ultimaMedida!.m1),
-                      style: const TextStyle(fontSize: 14, color: Colors.black54),
                     ),
                   ],
                 ),
               ),
-
+            const SizedBox(height: 12),
+            InkWell(
+              onTap: _pickDateRange,
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.green),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.date_range, color: Colors.green),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        startDate != null && endDate != null
+                            ? '${_formatDate(startDate!)} - ${_formatDate(endDate!)}'
+                            : 'Seleccionar rango de fechas',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color:
+                              startDate != null ? Colors.black87 : Colors.grey,
+                        ),
+                      ),
+                    ),
+                    const Icon(Icons.arrow_drop_down),
+                  ],
+                ),
+              ),
+            ),
+            if (ultimaMedida != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Text(
+                  'Última medición: ${ultimaMedida!.fechaRegistro.toLocal().toString().substring(0, 19)}',
+                  style: const TextStyle(fontSize: 14, color: Colors.black54),
+                ),
+              ),
+            const SizedBox(height: 16),
+            if (ultimaMedida != null) _buildCloroPanel(ultimaMedida!),
             if (ultimaMedida == null && errorDetails.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 16),
-                child: Text(errorDetails, style: const TextStyle(color: Colors.red)),
+                child: Text(
+                  errorDetails,
+                  style: const TextStyle(color: Colors.red),
+                ),
               ),
-
             const SizedBox(height: 20),
-
-            // MEDIDAS EXTRA
             if (ultimaMedida != null)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildMeasureCard('Temp', '${ultimaMedida!.m2} °C', Icons.thermostat),
-                  _buildMeasureCard('ORP', '${ultimaMedida!.m3} mV', Icons.bolt),
-                  _buildMeasureCard('Oxígeno', 'N/D', Icons.water_drop),
+                  _buildMeasureCard(
+                    'Med 1',
+                    '${ultimaMedida!.m1}',
+                    Icons.thermostat,
+                  ),
+                  _buildMeasureCard(
+                    'Med 2',
+                    '${ultimaMedida!.m2}',
+                    Icons.bolt,
+                  ),
+                  _buildMeasureCard('Med 3',
+                    '${ultimaMedida!.m3}',
+                    Icons.water_drop),
+                    
+                  _buildMeasureCard(
+                    'Med 4',
+                    '${ultimaMedida!.m4}',
+                    Icons.bolt,
+                  ),
                 ],
               ),
-
             const SizedBox(height: 24),
-
             const Text(
-              'Tendencia de medidas',
+              'Tendencia de cloro residual',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                DropdownButton<String>(
-                  value: 'día',
-                  items: const [
-                    DropdownMenuItem(value: 'día', child: Text('Día')),
-                    DropdownMenuItem(value: 'semana', child: Text('Semana')),
-                    DropdownMenuItem(value: 'mes', child: Text('Mes')),
-                    DropdownMenuItem(value: 'año', child: Text('Año')),
-                  ],
-                  onChanged: (value) {
-                    // TODO: aplicar filtro gráfico
-                  },
-                ),
-              ],
-            ),
-
             Container(
-              height: 200,
+              height: 400,
               margin: const EdgeInsets.only(top: 8),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                color: Colors.grey.shade100,
+                color: Colors.white,
               ),
               alignment: Alignment.center,
               child: ResidualChlorineChart(historial: historialParaGrafico),
             ),
-
             const SizedBox(height: 24),
-
             Center(
               child: TextButton.icon(
-                onPressed: () {
-                  // TODO: Navegar a historial o medida individual
-                },
-                icon: const Icon(LucideIcons.history),
+                onPressed: () {},
+                icon: const Icon(LucideIcons.history, color: Colors.blue),
                 label: const Text('Ver historial completo'),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildCloroPanel(PozoDetailsModel medida) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          const Text(
+            'Cloro residual',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${medida.cloroResidual.toStringAsFixed(2)} ppm',
+            style: TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
+              color: _getCloroColor(medida.cloroResidual),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            _getCloroEstado(medida.cloroResidual),
+            style: const TextStyle(fontSize: 14),
+          ),
+        ],
       ),
     );
   }
@@ -279,15 +367,27 @@ class _PozoDetailsPageState extends State<PozoDetailsPage> {
   }
 
   Widget _buildMeasureCard(String label, String value, IconData icon) {
-    return GestureDetector(
-      onTap: () {
-        // TODO: mostrar gráfico de esa medida
-      },
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Column(
         children: [
-          Icon(icon, color: Colors.blueGrey, size: 28),
+          Icon(icon, color: Colors.blue, size: 28),
           const SizedBox(height: 4),
-          Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+          ),
           Text(value, style: const TextStyle(fontSize: 14)),
         ],
       ),

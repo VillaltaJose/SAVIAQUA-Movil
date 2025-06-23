@@ -27,6 +27,7 @@ class MyApp extends StatelessWidget {
       title: 'SAVIAQUA App',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.light().copyWith(
+        scaffoldBackgroundColor: Colors.white,
         textSelectionTheme: TextSelectionThemeData(
           selectionColor: Colors.blue.withOpacity(0.3),
           selectionHandleColor: Colors.black38,
