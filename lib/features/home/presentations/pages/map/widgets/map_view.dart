@@ -143,7 +143,7 @@ class MapViewState extends State<MapView> {
   }
 
   void _onMarkerTapped(PozoModel pozo) async {
-    final pozoDetailsModel = _fetchPozoDetailById(pozo.codigo);
+    _fetchPozoDetailById(pozo.codigo);
     if (!context.mounted) return;
 
     showModalBottomSheet(
@@ -183,7 +183,7 @@ class MapViewState extends State<MapView> {
                     ),
                     decoration: BoxDecoration(
                       color: _getCloroColor(
-                        pozoDetailsModel.cloroResidual,
+                        pozoDetailsModel!.cloroResidual,
                       ).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -192,7 +192,7 @@ class MapViewState extends State<MapView> {
                         Icon(
                           Icons.water_drop,
                           size: 24,
-                          color: _getCloroColor(pozoDetailsModel.cloroResidual),
+                          color: _getCloroColor(pozoDetailsModel!.cloroResidual),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
@@ -200,18 +200,18 @@ class MapViewState extends State<MapView> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Cloro residual: ${pozoDetailsModel.cloroResidual.toStringAsFixed(2)} ppm',
+                                'Cloro residual: ${pozoDetailsModel!.cloroResidual.toStringAsFixed(2)} ppm',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
                                   color: _getCloroColor(
-                                    pozoDetailsModel.cloroResidual,
+                                    pozoDetailsModel!.cloroResidual,
                                   ),
                                 ),
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                'Medido el: ${pozoDetailsModel.fechaRegistro.toLocal().toString().substring(0, 19)}',
+                                'Medido el: ${pozoDetailsModel!.fechaRegistro.toLocal().toString().substring(0, 19)}',
                                 style: const TextStyle(
                                   fontSize: 13,
                                   color: Colors.black54,
