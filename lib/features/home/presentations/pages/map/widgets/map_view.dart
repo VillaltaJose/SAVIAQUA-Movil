@@ -126,9 +126,9 @@ class MapViewState extends State<MapView> {
   }
 
   Color _getCloroColor(double cloro) {
-    if (cloro < 0.2) return Colors.blue; 
-    if (cloro <= 2.0) return Colors.green; 
-    return Colors.red; 
+    if (cloro < 0.2) return Colors.blue;
+    if (cloro <= 2.0) return Colors.green;
+    return Colors.red;
   }
 
   LatLngBounds _getBounds(List<PozoModel> pozos) {
@@ -143,9 +143,7 @@ class MapViewState extends State<MapView> {
   }
 
   void _onMarkerTapped(PozoModel pozo) async {
-    final pozoDetailsModel = await PozoDetailsService().getMeasurementByPozoId(
-      pozo.codigo,
-    );
+    final pozoDetailsModel = _fetchPozoDetailById(pozo.codigo);
     if (!context.mounted) return;
 
     showModalBottomSheet(
@@ -161,7 +159,6 @@ class MapViewState extends State<MapView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Título principal: nombre de la junta
                 Text(
                   pozo.nombre,
                   style: const TextStyle(
@@ -172,13 +169,11 @@ class MapViewState extends State<MapView> {
                 ),
                 const SizedBox(height: 6),
 
-                // Subtítulo: ubicación
                 Text(
                   '${pozo.ciudad}, ${pozo.provincia} - ${pozo.parroquia}',
                   style: const TextStyle(fontSize: 14, color: Colors.black54),
                 ),
 
-                // Panel de cloro residual
                 if (pozoDetailsModel != null) ...[
                   const SizedBox(height: 12),
                   Container(
@@ -232,7 +227,6 @@ class MapViewState extends State<MapView> {
 
                 const Spacer(),
 
-                // Botón "Ver más"
                 Align(
                   alignment: Alignment.bottomRight,
                   child: ElevatedButton.icon(
