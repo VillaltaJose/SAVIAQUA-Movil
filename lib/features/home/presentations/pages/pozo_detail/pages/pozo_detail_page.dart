@@ -304,14 +304,6 @@ class _PozoDetailsPageState extends State<PozoDetailsPage> {
               alignment: Alignment.center,
               child: ResidualChlorineChart(historial: historialParaGrafico),
             ),
-            const SizedBox(height: 24),
-            Center(
-              child: TextButton.icon(
-                onPressed: () {},
-                icon: const Icon(LucideIcons.history, color: Colors.blue),
-                label: const Text('Ver historial completo'),
-              ),
-            ),
           ],
         ),
       ),
