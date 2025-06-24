@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -21,7 +23,7 @@ class AuthNotifier extends ChangeNotifier {
 
   Future<void> login(String token, Map<String, dynamic> user) async {
     await _storage.write(key: 'session_token', value: token);
-    await _storage.write(key: 'session_user', value: user.toString());
+    await _storage.write(key: 'session_user', value: jsonEncode(user));
 
     _token = token;
     _user = user;
