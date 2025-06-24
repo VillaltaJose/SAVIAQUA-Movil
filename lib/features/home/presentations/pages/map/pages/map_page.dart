@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:saviaqua/features/home/presentations/pages/map/widgets/map_toggle_view.dart';
 import 'package:saviaqua/features/home/presentations/pages/map/widgets/table_view.dart';
@@ -73,6 +74,20 @@ class _MapPageState extends State<MapPage> {
                   ),
                 if (_showMap) const SizedBox(height: 12),
                 MapToggleButtons(showMap: _showMap, onToggle: _toggleView),
+                const SizedBox(height: 12),
+                FloatingActionButton(
+                  heroTag: 'add_pozo_button',
+                  onPressed: () {
+                    context.push('/home/add-pozo');
+                  },
+                  tooltip: 'Agregar pozo',
+                  backgroundColor: Colors.white,
+                  child: Icon(
+                    LucideIcons.plus,
+                    size: 28,
+                    color: Colors.black38,
+                  ),
+                ),
               ],
             ),
           ),

@@ -3,6 +3,7 @@ import 'package:saviaqua/features/auth/data/auth_notifier.dart';
 import 'package:saviaqua/features/auth/presentations/login_page.dart';
 import 'package:saviaqua/features/home/presentations/home_page.dart';
 import 'package:saviaqua/features/home/presentations/layout/home_layout.dart';
+import 'package:saviaqua/features/home/presentations/pages/add_pozo/pages/add_pozo_page.dart';
 import 'package:saviaqua/features/home/presentations/pages/map/pages/map_page.dart';
 import 'package:saviaqua/features/home/presentations/pages/pozo_detail/pages/pozo_detail_page.dart';
 
@@ -31,6 +32,10 @@ GoRouter createRouter(AuthNotifier authNotifier) {
               final codigo = int.parse(state.pathParameters['codigo']!);
               return PozoDetailsPage(pozoId: codigo);
             },
+          ),
+          GoRoute(
+            path: '/home/add-pozo',
+            builder: (_, __) => const AddPozoPage(),
           ),
         ],
       ),
