@@ -24,7 +24,7 @@ GoRouter createRouter(AuthNotifier authNotifier) {
       ShellRoute(
         builder: (context, state, child) => HomeLayout(child: child),
         routes: [
-          GoRoute(path: '/home', builder: (_, __) => const HomePage()),
+          GoRoute(path: '/home', builder: (_, __) => const AddPozoPage()),
           GoRoute(path: '/home/map', builder: (_, __) => const MapPage()),
           GoRoute(
             path: '/home/pozo/:codigo',
