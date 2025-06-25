@@ -126,7 +126,40 @@ class _PozoFormState extends State<PozoForm>
   }
 
   void _submitForm() {
-    
+    if (!_formKey.currentState!.validate()) return;
+
+    final data = {
+      'nombre': _nombreController.text.trim(),
+      'descripcion': _descripcionController.text.trim(),
+      'provinciaId': selectedProvinciaId,
+      'ciudadId': selectedCiudadId,
+      'parroquiaId': selectedParroquiaId,
+      'latitud':
+          usarCoordenadasManual
+              ? double.tryParse(_latController.text.trim())
+              : null,
+      'longitud':
+          usarCoordenadasManual
+              ? double.tryParse(_lngController.text.trim())
+              : null,
+    };
+
+    debugPrint('Nuevo pozo: $data');
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.white),
+            SizedBox(width: 8),
+            Text('Pozo registrado exitosamente'),
+          ],
+        ),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
   }
 
   @override
@@ -282,44 +315,46 @@ class _PozoFormState extends State<PozoForm>
                     children: [
                       _buildAnimatedField(
                         delay: 500,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: ToggleButtons(
-                            isSelected: [
-                              usarCoordenadasManual,
-                              !usarCoordenadasManual,
-                            ],
-                            onPressed: (i) => _toggleUbicacion(i == 0),
-                            borderRadius: BorderRadius.circular(12),
-                            selectedColor: Colors.white,
-                            fillColor: Colors.blue,
-                            color: Colors.grey.shade600,
-                            constraints: BoxConstraints(
-                              minWidth:
-                                  (MediaQuery.of(context).size.width - 90) / 2,
-                              minHeight: 45,
+                        child: Center(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            children: const [
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.edit_location, size: 18),
-                                  SizedBox(width: 4),
-                                  Text('Manual'),
-                                ],
+                            child: ToggleButtons(
+                              isSelected: [
+                                usarCoordenadasManual,
+                                !usarCoordenadasManual,
+                              ],
+                              onPressed: (i) => _toggleUbicacion(i == 0),
+                              borderRadius: BorderRadius.circular(12),
+                              selectedColor: Colors.white,
+                              fillColor: Colors.blue,
+                              color: Colors.grey.shade600,
+                              constraints: BoxConstraints(
+                                minWidth:
+                                    (MediaQuery.of(context).size.width - 90) / 2,
+                                minHeight: 45,
                               ),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.map, size: 18),
-                                  SizedBox(width: 4),
-                                  Text('Mapa'),
-                                ],
-                              ),
-                            ],
+                              children: <Widget>[
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.edit_location, size: 18),
+                                    SizedBox(width: 4),
+                                    Text('Manual'),
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.map, size: 18),
+                                    SizedBox(width: 4),
+                                    Text('Mapa'),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -574,7 +609,7 @@ class _PozoFormState extends State<PozoForm>
   InputDecoration _inputDecoration(String hint, IconData? icon) {
     return InputDecoration(
       hintText: hint,
-      prefixIcon: icon != null ? Icon(icon, color: Colors.blue) : null,
+      prefixIcon: icon != null ? Icon(icon, color: Colors.black38) : null,
       filled: true,
       fillColor: Colors.white,
       contentPadding: EdgeInsets.symmetric(
