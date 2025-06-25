@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:saviaqua/features/home/data/location_data/location_service.dart';
 import 'package:saviaqua/features/home/model/location/place_model.dart';
+import 'package:saviaqua/features/home/presentations/pages/add_pozo/widgets/minimap_preview.dart';
+import 'package:saviaqua/features/home/presentations/pages/add_pozo/widgets/select_location_map.dart';
 
 class PozoForm extends StatefulWidget {
   const PozoForm({super.key});
@@ -191,9 +194,9 @@ class _PozoFormState extends State<PozoForm>
                       ),
                     ],
                   ),
-      
+
                   const SizedBox(height: 16),
-      
+
                   _buildSectionCard(
                     title: 'Ubicación Geográfica',
                     icon: Icons.location_on,
@@ -221,12 +224,14 @@ class _PozoFormState extends State<PozoForm>
                           },
                           validator:
                               (val) =>
-                                  val == null ? 'Seleccione una provincia' : null,
+                                  val == null
+                                      ? 'Seleccione una provincia'
+                                      : null,
                         ),
                       ),
-      
+
                       const SizedBox(height: 16),
-      
+
                       _buildAnimatedField(
                         delay: 300,
                         child: _buildDropdown(
@@ -266,9 +271,9 @@ class _PozoFormState extends State<PozoForm>
                                       : null,
                         ),
                       ),
-      
+
                       const SizedBox(height: 16),
-      
+
                       _buildAnimatedField(
                         delay: 400,
                         child: _buildDropdown(
@@ -294,7 +299,8 @@ class _PozoFormState extends State<PozoForm>
                           label: 'Parroquia',
                           icon: Icons.home,
                           onChanged:
-                              (val) => setState(() => selectedParroquiaId = val),
+                              (val) =>
+                                  setState(() => selectedParroquiaId = val),
                           validator:
                               (val) =>
                                   selectedCiudadId != null &&
@@ -306,9 +312,9 @@ class _PozoFormState extends State<PozoForm>
                       ),
                     ],
                   ),
-      
+
                   const SizedBox(height: 16),
-      
+
                   _buildSectionCard(
                     title: 'Coordenadas',
                     icon: Icons.gps_fixed,
@@ -333,10 +339,11 @@ class _PozoFormState extends State<PozoForm>
                               color: Colors.grey.shade600,
                               constraints: BoxConstraints(
                                 minWidth:
-                                    (MediaQuery.of(context).size.width - 90) / 2,
+                                    (MediaQuery.of(context).size.width - 90) /
+                                    2,
                                 minHeight: 45,
                               ),
-                              children: <Widget>[
+                              children: const [
                                 Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
@@ -358,9 +365,9 @@ class _PozoFormState extends State<PozoForm>
                           ),
                         ),
                       ),
-      
+
                       const SizedBox(height: 16),
-      
+
                       if (usarCoordenadasManual) ...[
                         _buildAnimatedField(
                           delay: 600,
@@ -394,52 +401,97 @@ class _PozoFormState extends State<PozoForm>
                         _buildAnimatedField(
                           delay: 600,
                           child: Container(
-                            width: double.infinity,
-                            height: 200,
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade200,
+                              color: Colors.grey.shade100,
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.grey.shade300),
                             ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.map,
-                                  size: 48,
-                                  color: Colors.grey.shade400,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Vista del mapa próximamente',
-                                  style: TextStyle(
-                                    color: Colors.grey.shade600,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                ElevatedButton.icon(
-                                  onPressed: () {},
-                                  icon: const Icon(Icons.my_location),
-                                  label: const Text('Seleccionar ubicación'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
+                            child: SizedBox(
+                              height: 200,
+                              child: Stack(
+                                alignment: Alignment.bottomCenter,
+                                children: [
+                                  Positioned.fill(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        if (_latController.text.isNotEmpty &&
+                                            _lngController.text.isNotEmpty) ...[
+                                          MiniMapPreview(
+                                            key: ValueKey('${_latController.text}_${_lngController.text}'),
+                                            lat: double.parse(
+                                              _latController.text,
+                                            ),
+                                            lng: double.parse(
+                                              _lngController.text,
+                                            ),
+                                            height: 200,
+                                          ),
+                                        ] else ...[
+                                          Icon(
+                                            Icons.map,
+                                            size: 48,
+                                            color: Colors.grey.shade400,
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'Vista del mapa próximamente',
+                                            style: TextStyle(
+                                              color: Colors.grey.shade600,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 50),
+                                        ],
+                                      ],
                                     ),
                                   ),
-                                ),
-                              ],
+                                  Positioned(
+                                    bottom: 8,
+                                    child: ElevatedButton.icon(
+                                      onPressed: () async {
+                                        final result = await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (_) => const SelectLocationPage(),
+                                          ),
+                                        );
+                            
+                                        if (result is LatLng) {
+                                          setState(() {
+                                            _latController.text = result.latitude
+                                                .toStringAsFixed(6);
+                                            _lngController.text = result.longitude
+                                                .toStringAsFixed(6);
+                                          });
+                                        }
+                                      },
+                                      icon: const Icon(Icons.my_location),
+                                      label: Text(
+                                        _latController.text.isEmpty
+                                            ? 'Seleccionar ubicación'
+                                            : 'Cambiar ubicación',
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.blue,
+                                        foregroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ],
                     ],
                   ),
-      
+
                   const SizedBox(height: 16),
-      
+
                   _buildSectionCard(
                     title: 'Observaciones',
                     icon: Icons.note_alt,
@@ -457,9 +509,9 @@ class _PozoFormState extends State<PozoForm>
                       ),
                     ],
                   ),
-      
+
                   const SizedBox(height: 32),
-      
+
                   _buildAnimatedField(
                     delay: 800,
                     child: Container(
