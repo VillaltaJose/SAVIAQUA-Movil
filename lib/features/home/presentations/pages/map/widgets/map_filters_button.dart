@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'map_filters_sheet.dart';
+import '../../../widgets/generic_filters_sheet.dart';
 
 class MapFiltersButton extends StatelessWidget {
   const MapFiltersButton({super.key});
@@ -15,7 +15,7 @@ class MapFiltersButton extends StatelessWidget {
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
-          builder: (_) => const MapFiltersSheet(),
+          builder: (_) => const GenericFiltersSheet(mostrarCampoJunta: true),
         );
       },
       tooltip: 'Filtros',

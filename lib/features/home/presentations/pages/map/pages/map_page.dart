@@ -4,7 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:saviaqua/features/home/presentations/pages/map/widgets/map_toggle_view.dart';
 import 'package:saviaqua/features/home/presentations/pages/map/widgets/table_view.dart';
 import '../widgets/map_view.dart';
-import '../widgets/map_filters_sheet.dart';
+import '../../../widgets/generic_filters_sheet.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -30,7 +30,7 @@ class _MapPageState extends State<MapPage> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => const MapFiltersSheet(),
+      builder: (_) => const GenericFiltersSheet(mostrarCampoJunta: true),
     );
 
     if (filtros != null && mounted) {

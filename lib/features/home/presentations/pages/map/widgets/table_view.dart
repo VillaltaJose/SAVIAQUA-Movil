@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:saviaqua/features/home/data/pozo_data/pozo_service.dart';
 import 'package:saviaqua/features/home/model/pozo/pozo_model.dart';
-import 'map_filters_sheet.dart';
+import '../../../widgets/generic_filters_sheet.dart';
 
 class TableView extends StatefulWidget {
   const TableView({super.key});
@@ -63,7 +63,7 @@ class _TableViewState extends State<TableView> {
     final filtros = await showModalBottomSheet<Map<String, String>>(
       context: context,
       isScrollControlled: true,
-      builder: (context) => const MapFiltersSheet(),
+      builder: (context) => const GenericFiltersSheet(mostrarCampoJunta: true),
     );
 
     if (filtros != null) {
