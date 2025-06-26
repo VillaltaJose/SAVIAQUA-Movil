@@ -1,18 +1,20 @@
 class CreatePozoDTO {
   final String? nombre;
   final String? descripcion;
-  final int? provinciaId;
-  final int? ciudadId;
-  final int? parroquiaId;
+  final int? codigoProvincia;
+  final int? codigoCiudad;
+  final int? codigoParroquia;
+  final int? codigoJunta;
   final double? latitude;
   final double? longitude;
 
   CreatePozoDTO({
     required this.nombre,
     required this.descripcion,
-    required this.provinciaId,
-    required this.ciudadId,
-    required this.parroquiaId,
+    required this.codigoProvincia,
+    required this.codigoCiudad,
+    required this.codigoParroquia,
+    required this.codigoJunta,
     required this.latitude,
     required this.longitude,
   });
@@ -21,11 +23,14 @@ class CreatePozoDTO {
     return {
       'nombre': nombre,
       'descripcion': descripcion,
-      'provinciaId': provinciaId,
-      'ciudadId': ciudadId,
-      'parroquiaId': parroquiaId,
-      'latitud': latitude,
-      'longitud': longitude,
+      'codigoProvincia': codigoProvincia,
+      'codigoCiudad': codigoCiudad,
+      'codigoParroquia': codigoParroquia,
+      'codigoJunta': codigoJunta,
+      'latitude': latitude,
+      'longitude': longitude,
     };
   }
 }
+
+

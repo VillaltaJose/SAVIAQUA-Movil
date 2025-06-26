@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:saviaqua/features/auth/data/auth_notifier.dart';
 import 'package:saviaqua/features/auth/presentations/login_page.dart';
@@ -24,8 +25,14 @@ GoRouter createRouter(AuthNotifier authNotifier) {
       ShellRoute(
         builder: (context, state, child) => HomeLayout(child: child),
         routes: [
-          GoRoute(path: '/home', builder: (_, __) => const AddPozoPage()),
-          GoRoute(path: '/home/map', builder: (_, __) => const MapPage()),
+          GoRoute(path: '/home', builder: (_, __) => const HomePage()),
+          GoRoute(
+            path: '/home/map',
+            builder: (_, state) {
+              final refreshKey = state.uri.queryParameters['refresh'];
+              return MapPage(key: ValueKey(refreshKey));
+            },
+          ),
           GoRoute(
             path: '/home/pozo/:codigo',
             builder: (context, state) {

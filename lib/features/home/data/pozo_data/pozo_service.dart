@@ -54,7 +54,7 @@ Future<PozoModel?> getPozoById(int id) async {
 
   Future<void> createPozo(CreatePozoDTO dto) async {
   final response = await _client.post(
-    Uri.parse('/juntas'),
+    Uri.parse('/pozos'),
     headers: {'Content-Type': 'application/json'},
     body: jsonEncode(dto.toJson()),
   );
@@ -62,9 +62,6 @@ Future<PozoModel?> getPozoById(int id) async {
 
   if (response.statusCode != 200 && response.statusCode != 201) {
     throw Exception('Error al crear pozo: ${response.body}');
-  }else {
-    print('Pozo creado: ${jsonDecode(response.body)}');
-    print('pozo creado: ${dto.toJson()}');
   }
 }
 

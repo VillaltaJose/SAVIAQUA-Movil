@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:saviaqua/features/home/data/junta_data/junta_service.dart';
 import 'package:saviaqua/features/home/data/location_data/location_service.dart';
@@ -199,9 +200,10 @@ class _PozoFormState extends State<PozoForm>
           _descripcionController.text.trim() == ''
               ? null
               : _descripcionController.text.trim(),
-      provinciaId: selectedProvinciaId,
-      ciudadId: selectedCiudadId,
-      parroquiaId: selectedParroquiaId,
+      codigoProvincia: selectedProvinciaId,
+      codigoCiudad: selectedCiudadId,
+      codigoParroquia: selectedParroquiaId,
+      codigoJunta: selectedJuntaId,
       latitude: double.tryParse(_latController.text.trim()),
       longitude: double.tryParse(_lngController.text.trim()),
     );
@@ -248,6 +250,10 @@ class _PozoFormState extends State<PozoForm>
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
+       if (mounted) {
+          context.pop();
+          context.go('/home/map?refresh=${DateTime.now().millisecondsSinceEpoch}');
+        }
     }
   }
 
