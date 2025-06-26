@@ -5,6 +5,7 @@ import 'package:saviaqua/features/auth/presentations/login_page.dart';
 import 'package:saviaqua/features/home/presentations/home_page.dart';
 import 'package:saviaqua/features/home/presentations/layout/home_layout.dart';
 import 'package:saviaqua/features/home/presentations/pages/add_pozo/pages/add_pozo_page.dart';
+import 'package:saviaqua/features/home/presentations/pages/junta_table/pages/junta_table_view.dart';
 import 'package:saviaqua/features/home/presentations/pages/map/pages/map_page.dart';
 import 'package:saviaqua/features/home/presentations/pages/pozo_detail/pages/pozo_detail_page.dart';
 
@@ -43,6 +44,10 @@ GoRouter createRouter(AuthNotifier authNotifier) {
           GoRoute(
             path: '/home/add-pozo',
             builder: (_, __) => const AddPozoPage(),
+          ),
+          GoRoute(
+            path: '/home/juntas',
+            builder: (_, __) => const JuntaTableView(),
           ),
         ],
       ),

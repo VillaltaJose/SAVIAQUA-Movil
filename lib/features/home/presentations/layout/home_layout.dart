@@ -17,6 +17,7 @@ class _HomeLayoutState extends State<HomeLayout> {
     '/home',
     '/home/map',
     '/home/users',
+    '/home/juntas',
     '/home/profile',
   ];
 
@@ -64,10 +65,16 @@ class _HomeLayoutState extends State<HomeLayout> {
                 onTap: () => _onTap(2),
               ),
               _NavItem(
-                icon: LucideIcons.user,
-                label: 'Perfil',
+                icon: LucideIcons.clipboardList,
+                label: 'Juntas',
                 isSelected: _selectedIndex == 3,
                 onTap: () => _onTap(3),
+              ),
+              _NavItem(
+                icon: LucideIcons.user,
+                label: 'Perfil',
+                isSelected: _selectedIndex == 4,
+                onTap: () => _onTap(4),
               ),
             ],
           ),
