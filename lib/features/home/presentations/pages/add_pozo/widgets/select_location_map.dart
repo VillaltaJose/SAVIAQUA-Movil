@@ -10,6 +10,7 @@ class SelectLocationPage extends StatefulWidget {
 
 class _SelectLocationPageState extends State<SelectLocationPage> {
   LatLng? selectedLocation;
+  // ignore: unused_field
   GoogleMapController? _mapController;
 
   final LatLng initialPosition = const LatLng(-1.8312, -78.1834);

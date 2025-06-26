@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:saviaqua/features/home/model/pozo/pozo_DTO.dart';
 import 'package:saviaqua/features/home/model/pozo/pozo_model.dart';
 import 'package:saviaqua/features/home/model/pozo/pozo_response.dart';
 import '../../../../core/services/http_client.dart';
@@ -50,4 +51,21 @@ Future<PozoModel?> getPozoById(int id) async {
       throw Exception('Error al obtener pozos filtrados');
     }
   }
+
+  Future<void> createPozo(CreatePozoDTO dto) async {
+  final response = await _client.post(
+    Uri.parse('/juntas'),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode(dto.toJson()),
+  );
+
+
+  if (response.statusCode != 200 && response.statusCode != 201) {
+    throw Exception('Error al crear pozo: ${response.body}');
+  }else {
+    print('Pozo creado: ${jsonDecode(response.body)}');
+    print('pozo creado: ${dto.toJson()}');
+  }
+}
+
 }
