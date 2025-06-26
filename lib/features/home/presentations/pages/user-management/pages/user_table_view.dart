@@ -1,106 +1,70 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:saviaqua/features/home/data/junta_data/junta_service.dart';
-import 'package:saviaqua/features/home/model/junta/junta_model.dart';
-import 'package:saviaqua/features/home/presentations/widgets/generic_filters_sheet.dart';
+import 'package:saviaqua/features/home/data/user_data/user_service.dart';
+import 'package:saviaqua/features/home/model/user/user-model.dart';
 
-class JuntaTableView extends StatefulWidget {
-  const JuntaTableView({super.key});
+class UserTableView extends StatefulWidget {
+  const UserTableView({super.key});
 
   @override
-  State<JuntaTableView> createState() => _JuntaTableViewState();
+  State<UserTableView> createState() => _UserTableViewState();
 }
 
-class _JuntaTableViewState extends State<JuntaTableView> {
-  final JuntaService _juntaService = JuntaService();
-  List<JuntaModel> _juntas = [];
-  List<JuntaModel> _juntasFiltradas = [];
+class _UserTableViewState extends State<UserTableView> {
+  final UserService _userService = UserService();
+  List<UserModel> _users = [];
+  List<UserModel> _filteredUsers = [];
 
   bool _isLoading = true;
-  String _busqueda = '';
+  String _search = '';
   bool _isDesc = true;
-
-  Map<String, String> _buildJuntaFilters({
-    int? codigoProvincia,
-    int? codigoCiudad,
-    int? codigoParroquia,
-    int pageSize = 15,
-    int pageNumber = 1,
-    bool minified = false,
-  }) {
-    return {
-      'minified': minified.toString(),
-      'codigoProvincia': codigoProvincia?.toString() ?? 'null',
-      'codigoCiudad': codigoCiudad?.toString() ?? 'null',
-      'codigoParroquia': codigoParroquia?.toString() ?? 'null',
-      'pageSize': pageSize.toString(),
-      'pageNumber': pageNumber.toString(),
-    };
-  }
 
   @override
   void initState() {
     super.initState();
-    _fetchJuntas();
+    _fetchUsers();
   }
 
-  Future<void> _fetchJuntas([Map<String, String>? filtros]) async {
+  Future<void> _fetchUsers() async {
     try {
-      if (filtros == null || filtros.isEmpty) {
-        filtros = _buildJuntaFilters();
-      }
-      final datos = await _juntaService.getJuntasFiltrados(filtros);
+      final data = await _userService.getUsers();
       if (!mounted) return;
       setState(() {
-        _juntas = datos;
-        _filtrarJuntas();
+        _users = data;
+        _filteredUsers = data;
         _isLoading = false;
       });
     } catch (e) {
-      debugPrint("ERROR al cargar juntas: $e");
-      if (!mounted) return;
+      debugPrint("ERROR al cargar usuarios: $e");
       setState(() => _isLoading = false);
     }
   }
 
-  void _openFilter() async {
-    final filtros = await showModalBottomSheet<Map<String, String>>(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => const GenericFiltersSheet(mostrarCampoJunta: false),
-    );
-
-    if (filtros != null) {
-      debugPrint('Filtros aplicados: $filtros');
-      setState(() => _isLoading = true);
-      _fetchJuntas(filtros);
-    }
-  }
-
-  void _filtrarJuntas() {
+  void _filterUsers() {
     setState(() {
-      _juntasFiltradas =
-          _juntas.where((junta) {
-            final termino = _busqueda.toLowerCase();
-            return junta.nombre.toLowerCase().contains(termino) ||
-                junta.provincia.toLowerCase().contains(termino) ||
-                junta.ciudad.toLowerCase().contains(termino) ||
-                junta.parroquia.toLowerCase().contains(termino);
+      _filteredUsers =
+          _users.where((user) {
+            final query = _search.toLowerCase();
+            return user.nombres.toLowerCase().contains(query) ||
+                user.apellidos.toLowerCase().contains(query) ||
+                user.correo.toLowerCase().contains(query) ||
+                user.rol.toLowerCase().contains(query) ||
+                user.junta.toLowerCase().contains(query);
           }).toList();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: Container(
-        color: Colors.white,
-        child: SafeArea(
+    return SafeArea(
+      child: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Container(
+          color: Colors.white,
           child: Column(
             children: [
-              // Encabezado
+              // Header
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -113,7 +77,7 @@ class _JuntaTableViewState extends State<JuntaTableView> {
                 ),
               ),
 
-              // Filtro de búsqueda y orden
+              // Search
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 child: Row(
@@ -123,11 +87,11 @@ class _JuntaTableViewState extends State<JuntaTableView> {
                         height: 40,
                         child: TextField(
                           onChanged: (value) {
-                            _busqueda = value;
-                            _filtrarJuntas();
+                            _search = value;
+                            _filterUsers();
                           },
                           decoration: InputDecoration(
-                            hintText: 'Buscar Juntas...',
+                            hintText: 'Buscar Usuarios...',
                             isDense: true,
                             contentPadding: const EdgeInsets.symmetric(
                               vertical: 8,
@@ -179,16 +143,16 @@ class _JuntaTableViewState extends State<JuntaTableView> {
                         onPressed: () {
                           setState(() {
                             if (_isDesc) {
-                              _juntas.sort(
-                                (a, b) => b.nombre.compareTo(a.nombre),
+                              _users.sort(
+                                (a, b) => b.nombres.compareTo(a.nombres),
                               );
                             } else {
-                              _juntas.sort(
-                                (a, b) => a.nombre.compareTo(b.nombre),
+                              _users.sort(
+                                (a, b) => a.nombres.compareTo(b.nombres),
                               );
                             }
                             _isDesc = !_isDesc;
-                            _filtrarJuntas();
+                            _filterUsers();
                           });
                         },
                         child: const Icon(
@@ -213,7 +177,9 @@ class _JuntaTableViewState extends State<JuntaTableView> {
                           foregroundColor: Colors.blue,
                           backgroundColor: Colors.white,
                         ),
-                        onPressed: _openFilter,
+                        onPressed: () {
+                          // Implement filter functionality
+                        },
                         child: const Icon(
                           Icons.tune,
                           size: 20,
@@ -240,7 +206,7 @@ class _JuntaTableViewState extends State<JuntaTableView> {
                           context.push('/home/add-junta');
                         },
                         child: const Icon(
-                          Icons.add_home_work_outlined,
+                          LucideIcons.userPlus,
                           size: 20,
                           color: Colors.black54,
                         ),
@@ -250,21 +216,23 @@ class _JuntaTableViewState extends State<JuntaTableView> {
                 ),
               ),
 
-              // Lista de juntas
+              // User list
               Expanded(
                 child:
                     _isLoading
                         ? const Center(child: CircularProgressIndicator())
-                        : _juntasFiltradas.isEmpty
-                        ? const Center(child: Text('No se encontraron juntas'))
+                        : _filteredUsers.isEmpty
+                        ? const Center(
+                          child: Text('No se encontraron usuarios'),
+                        )
                         : ListView.builder(
                           padding: const EdgeInsets.symmetric(
-                            vertical: 3,
-                            horizontal: 8,
+                            horizontal: 12,
+                            vertical: 6,
                           ),
-                          itemCount: _juntasFiltradas.length,
+                          itemCount: _filteredUsers.length,
                           itemBuilder: (_, index) {
-                            final junta = _juntasFiltradas[index];
+                            final user = _filteredUsers[index];
                             return Card(
                               elevation: 6,
                               color: Colors.white,
@@ -282,51 +250,40 @@ class _JuntaTableViewState extends State<JuntaTableView> {
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(16),
                                 onTap: () {
-                                  // Push a la vista de la junta si se desea
+                                  // Push a la vista del usuario
                                 },
                                 child: ListTile(
-                                  contentPadding: const EdgeInsets.all(12),
-                                  leading:
-                                      junta.urlLogo != null
-                                          ? ClipOval(
-                                            child: Image.network(
-                                              junta.urlLogo!,
-                                              width: 40,
-                                              height: 40,
-                                              fit: BoxFit.cover,
-                                            ),
-                                          )
-                                          : CircleAvatar(
-                                            backgroundColor: Colors.blueAccent
-                                                .withOpacity(0.1),
-                                            child: const Icon(
-                                              Icons.home_work_outlined,
-                                              color: Colors.blueAccent,
-                                              size: 24,
-                                            ),
-                                          ),
+                                  leading: CircleAvatar(
+                                    backgroundColor: Colors.blue.withOpacity(
+                                      0.1,
+                                    ),
+                                    child: const Icon(
+                                      Icons.person_outline,
+                                      color: Colors.blue,
+                                    ),
+                                  ),
                                   title: Text(
-                                    junta.nombre,
+                                    '${user.nombres} ${user.apellidos}',
                                     style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                  subtitle: Text(
-                                    'Ubicación: ${junta.provincia}, ${junta.ciudad}, ${junta.parroquia}',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.black54,
-                                    ),
-                                  ),
-                                  trailing: Text(
-                                    junta.codigo.toString(),
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
                                       fontSize: 16,
-                                      color: Colors.blueAccent,
+                                      fontWeight: FontWeight.w600,
                                     ),
+                                  ),
+                                  subtitle: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(user.correo),
+                                      Text('Rol: ${user.rol}'),
+                                      Text('Junta: ${user.junta}'),
+                                      Text(
+                                        'Creado: ${user.fechaCreacion.toLocal().toString().substring(0, 10)}',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.black45,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),

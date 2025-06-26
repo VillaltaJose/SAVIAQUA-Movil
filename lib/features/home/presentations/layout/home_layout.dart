@@ -16,9 +16,9 @@ class _HomeLayoutState extends State<HomeLayout> {
   final List<String> _tabs = [
     '/home',
     '/home/map',
-    '/home/users',
+    '/home/notifications',
     '/home/juntas',
-    '/home/profile',
+    '/home/users',
   ];
 
   void _onTap(int index) {
@@ -71,7 +71,7 @@ class _HomeLayoutState extends State<HomeLayout> {
                 onTap: () => _onTap(3),
               ),
               _NavItem(
-                icon: LucideIcons.user,
+                icon: LucideIcons.userCog,
                 label: 'Perfil',
                 isSelected: _selectedIndex == 4,
                 onTap: () => _onTap(4),
