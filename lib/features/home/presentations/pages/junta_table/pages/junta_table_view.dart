@@ -166,6 +166,56 @@ class _JuntaTableViewState extends State<JuntaTableView> {
                         ),
                       ),
                     ),
+                    const SizedBox(width: 8),
+
+                    SizedBox(
+                      height: 40,
+                      width: 40,
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          side: BorderSide(color: Colors.grey.shade300),
+                          foregroundColor: Colors.blue,
+                          backgroundColor: Colors.white,
+                        ),
+                        onPressed: () {
+                          // Aquí podrías abrir un diálogo de filtros si lo necesitas.
+                        },
+                        child: const Icon(
+                          Icons.tune,
+                          size: 20,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    SizedBox(
+                      height: 40,
+                      width: 40,
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          side: BorderSide(color: Colors.grey.shade300),
+                          foregroundColor: Colors.blue,
+                          backgroundColor: Colors.white,
+                        ),
+                        onPressed: () {
+                          // Aquí podrías abrir un diálogo de filtros si lo necesitas.
+                        },
+                        child: const Icon(
+                          Icons.add_home_work_outlined,
+                          size: 20,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
