@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:saviaqua/features/home/data/junta_data/junta_service.dart';
 import 'package:saviaqua/features/home/model/junta/junta_model.dart';
+import 'package:saviaqua/features/home/presentations/widgets/generic_filters_sheet.dart';
 
 class JuntaTableView extends StatefulWidget {
   const JuntaTableView({super.key});
@@ -19,19 +21,35 @@ class _JuntaTableViewState extends State<JuntaTableView> {
   String _busqueda = '';
   bool _isDesc = true;
 
+  Map<String, String> _buildJuntaFilters({
+    int? codigoProvincia,
+    int? codigoCiudad,
+    int? codigoParroquia,
+    int pageSize = 15,
+    int pageNumber = 1,
+    bool minified = false,
+  }) {
+    return {
+      'minified': minified.toString(),
+      'codigoProvincia': codigoProvincia?.toString() ?? 'null',
+      'codigoCiudad': codigoCiudad?.toString() ?? 'null',
+      'codigoParroquia': codigoParroquia?.toString() ?? 'null',
+      'pageSize': pageSize.toString(),
+      'pageNumber': pageNumber.toString(),
+    };
+  }
+
   @override
   void initState() {
     super.initState();
     _fetchJuntas();
   }
 
-  Future<void> _fetchJuntas() async {
+  Future<void> _fetchJuntas([Map<String, String>? filtros]) async {
     try {
-      final filtros = {
-        'minified': 'false',
-        'pageSize': '50',
-        'pageNumber': '1',
-      };
+      if (filtros == null || filtros.isEmpty) {
+        filtros = _buildJuntaFilters();
+      }
       final datos = await _juntaService.getJuntasFiltrados(filtros);
       if (!mounted) return;
       setState(() {
@@ -43,6 +61,20 @@ class _JuntaTableViewState extends State<JuntaTableView> {
       debugPrint("ERROR al cargar juntas: $e");
       if (!mounted) return;
       setState(() => _isLoading = false);
+    }
+  }
+
+  void _openFilter() async {
+    final filtros = await showModalBottomSheet<Map<String, String>>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => const GenericFiltersSheet(mostrarCampoJunta: false),
+    );
+
+    if (filtros != null) {
+      debugPrint('Filtros aplicados: $filtros');
+      setState(() => _isLoading = true);
+      _fetchJuntas(filtros);
     }
   }
 
@@ -181,9 +213,7 @@ class _JuntaTableViewState extends State<JuntaTableView> {
                           foregroundColor: Colors.blue,
                           backgroundColor: Colors.white,
                         ),
-                        onPressed: () {
-                          // Aquí podrías abrir un diálogo de filtros si lo necesitas.
-                        },
+                        onPressed: _openFilter,
                         child: const Icon(
                           Icons.tune,
                           size: 20,
@@ -207,7 +237,7 @@ class _JuntaTableViewState extends State<JuntaTableView> {
                           backgroundColor: Colors.white,
                         ),
                         onPressed: () {
-                          // Aquí podrías abrir un diálogo de filtros si lo necesitas.
+                          context.push('/home/add-junta');
                         },
                         child: const Icon(
                           Icons.add_home_work_outlined,

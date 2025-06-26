@@ -6,6 +6,7 @@ import 'package:saviaqua/features/home/presentations/home_page.dart';
 import 'package:saviaqua/features/home/presentations/layout/home_layout.dart';
 import 'package:saviaqua/features/home/presentations/pages/add_pozo/pages/add_pozo_page.dart';
 import 'package:saviaqua/features/home/presentations/pages/junta_table/pages/junta_table_view.dart';
+import 'package:saviaqua/features/home/presentations/pages/junta_table/widgets/add_junta_page.dart';
 import 'package:saviaqua/features/home/presentations/pages/map/pages/map_page.dart';
 import 'package:saviaqua/features/home/presentations/pages/pozo_detail/pages/pozo_detail_page.dart';
 
@@ -47,7 +48,14 @@ GoRouter createRouter(AuthNotifier authNotifier) {
           ),
           GoRoute(
             path: '/home/juntas',
-            builder: (_, __) => const JuntaTableView(),
+            builder: (_, state) {
+              final refreshKey = state.uri.queryParameters['refresh'];
+              return JuntaTableView(key: ValueKey(refreshKey));
+            },
+          ),
+          GoRoute(
+            path: '/home/add-junta',
+            builder: (_, __) => const AddJuntaPage(),
           ),
         ],
       ),

@@ -3,21 +3,19 @@ import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:saviaqua/features/home/data/junta_data/junta_service.dart';
 import 'package:saviaqua/features/home/data/location_data/location_service.dart';
-import 'package:saviaqua/features/home/data/pozo_data/pozo_service.dart';
-import 'package:saviaqua/features/home/model/junta/junta_model.dart';
+import 'package:saviaqua/features/home/model/junta/Junta_DTO.dart';
 import 'package:saviaqua/features/home/model/location/place_model.dart';
-import 'package:saviaqua/features/home/model/pozo/pozo_DTO.dart';
 import 'package:saviaqua/features/home/presentations/widgets/minimap_preview.dart';
 import 'package:saviaqua/features/home/presentations/widgets/select_location_map.dart';
 
-class PozoForm extends StatefulWidget {
-  const PozoForm({super.key});
+class JuntaForm extends StatefulWidget {
+  const JuntaForm({super.key});
 
   @override
-  State<PozoForm> createState() => _PozoFormState();
+  State<JuntaForm> createState() => _JuntaFormState();
 }
 
-class _PozoFormState extends State<PozoForm>
+class _JuntaFormState extends State<JuntaForm>
     with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   late AnimationController _animationController;
@@ -28,21 +26,17 @@ class _PozoFormState extends State<PozoForm>
   final _latController = TextEditingController();
   final _lngController = TextEditingController();
   bool _ubicacionInvalida = false;
-  bool _isLoadingJuntas = true;
 
   final LocationService _locationService = LocationService();
-  final PozoService _pozoService = PozoService();
   final JuntaService _juntaService = JuntaService();
 
   List<LugarModel> provincias = [];
   List<LugarModel> ciudades = [];
-  List<JuntaModel> juntas = [];
   List<LugarModel> parroquias = [];
 
   int? selectedProvinciaId;
   int? selectedCiudadId;
   int? selectedParroquiaId;
-  int? selectedJuntaId;
 
   bool _isLoadingProvincias = true;
   bool _isLoadingCiudades = false;
@@ -51,24 +45,6 @@ class _PozoFormState extends State<PozoForm>
   bool _isLoading = false;
 
   bool usarCoordenadasManual = true;
-
-  Map<String, String> _buildJuntaFilters({
-    int? codigoProvincia,
-    int? codigoCiudad,
-    int? codigoParroquia,
-    int pageSize = 15,
-    int pageNumber = 1,
-    bool minified = false,
-  }) {
-    return {
-      'minified': minified.toString(),
-      'codigoProvincia': codigoProvincia?.toString() ?? 'null',
-      'codigoCiudad': codigoCiudad?.toString() ?? 'null',
-      'codigoParroquia': codigoParroquia?.toString() ?? 'null',
-      'pageSize': pageSize.toString(),
-      'pageNumber': pageNumber.toString(),
-    };
-  }
 
   @override
   void initState() {
@@ -82,7 +58,6 @@ class _PozoFormState extends State<PozoForm>
     );
     _animationController.forward();
     _loadProvincias();
-    _fetchJuntas();
   }
 
   @override
@@ -91,24 +66,6 @@ class _PozoFormState extends State<PozoForm>
     super.dispose();
   }
 
-  Future<void> _fetchJuntas() async {
-    try {
-      final filtros = _buildJuntaFilters(
-        codigoProvincia: selectedProvinciaId,
-        codigoCiudad: selectedCiudadId,
-        codigoParroquia: selectedParroquiaId,
-      );
-      juntas = await _juntaService.getJuntasFiltrados(filtros);
-    } catch (e) {
-      debugPrint("ERROR al cargar juntas: $e");
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoadingJuntas = false;
-        });
-      }
-    }
-  }
 
   Future<void> _loadProvincias() async {
     try {
@@ -194,22 +151,21 @@ class _PozoFormState extends State<PozoForm>
 
     setState(() => _isLoading = true);
 
-    final dataDTO = CreatePozoDTO(
+    final dataDTO = CreateJuntaDTO(
       nombre: _nombreController.text.trim(),
       descripcion:
           _descripcionController.text.trim() == ''
               ? null
               : _descripcionController.text.trim(),
-      codigoProvincia: selectedProvinciaId,
-      codigoCiudad: selectedCiudadId,
-      codigoParroquia: selectedParroquiaId,
-      codigoJunta: selectedJuntaId,
+      provinciaId: selectedProvinciaId,
+      ciudadId: selectedCiudadId,
+      parroquiaId: selectedParroquiaId,
       latitude: double.tryParse(_latController.text.trim()),
       longitude: double.tryParse(_lngController.text.trim()),
     );
 
     try {
-      await _pozoService.createPozo(dataDTO);
+      await _juntaService.createJunta(dataDTO);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -218,7 +174,7 @@ class _PozoFormState extends State<PozoForm>
               children: [
                 Icon(Icons.check_circle, color: Colors.white),
                 SizedBox(width: 8),
-                Text('Pozo registrado exitosamente'),
+                Text('Junta registrado exitosamente'),
               ],
             ),
             backgroundColor: Colors.green,
@@ -237,7 +193,7 @@ class _PozoFormState extends State<PozoForm>
               children: [
                 const Icon(Icons.error, color: Colors.white),
                 const SizedBox(width: 8),
-                Expanded(child: Text('Error al registrar el pozo: $e')),
+                Expanded(child: Text('Error al registrar el Junta: $e')),
               ],
             ),
             backgroundColor: Colors.red,
@@ -252,7 +208,7 @@ class _PozoFormState extends State<PozoForm>
       if (mounted) setState(() => _isLoading = false);
        if (mounted) {
           context.pop();
-          context.go('/home/map?refresh=${DateTime.now().millisecondsSinceEpoch}');
+          context.go('/home/juntas?refresh=${DateTime.now().millisecondsSinceEpoch}');
         }
     }
   }
@@ -274,7 +230,7 @@ class _PozoFormState extends State<PozoForm>
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      'Guardando pozo...',
+                      'Guardando Junta...',
                       style: TextStyle(fontSize: 16, color: Colors.grey),
                     ),
                   ],
@@ -297,38 +253,10 @@ class _PozoFormState extends State<PozoForm>
                                 delay: 100,
                                 child: _inputField(
                                   _nombreController,
-                                  'Nombre del pozo',
-                                  'Ej. Pozo Norte',
+                                  'Nombre del Junta',
+                                  'Ej. Junta Azuay',
                                   Icons.water_drop,
                                   validator: true,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              _buildAnimatedField(
-                                delay: 200,
-                                child: _buildDropdown(
-                                  isLoading: _isLoadingJuntas,
-                                  value: selectedJuntaId,
-                                  items:
-                                      juntas
-                                          .map(
-                                            (e) => DropdownMenuItem(
-                                              value: e.codigo,
-                                              child: Text(e.nombre),
-                                            ),
-                                          )
-                                          .toList(),
-                                  hintLoading: 'Cargando Juntas...',
-                                  label: 'Juntas',
-                                  icon: Icons.map,
-                                  onChanged: (val) {
-                                    setState(() => selectedJuntaId = val);
-                                  },
-                                  validator:
-                                      (val) =>
-                                          val == null
-                                              ? 'Seleccione una junta'
-                                              : null,
                                 ),
                               ),
                             ],
@@ -672,7 +600,7 @@ class _PozoFormState extends State<PozoForm>
                                   controller: _descripcionController,
                                   maxLines: 4,
                                   decoration: _inputDecoration(
-                                    'Detalles adicionales sobre el pozo...',
+                                    'Detalles adicionales sobre el Junta...',
                                     null,
                                   ),
                                 ),
@@ -703,7 +631,7 @@ class _PozoFormState extends State<PozoForm>
                                   color: Colors.white,
                                 ),
                                 label: const Text(
-                                  'Guardar Pozo',
+                                  'Guardar Junta',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
