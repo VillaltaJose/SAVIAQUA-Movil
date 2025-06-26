@@ -157,9 +157,9 @@ class _JuntaFormState extends State<JuntaForm>
           _descripcionController.text.trim() == ''
               ? null
               : _descripcionController.text.trim(),
-      provinciaId: selectedProvinciaId,
-      ciudadId: selectedCiudadId,
-      parroquiaId: selectedParroquiaId,
+      codigoProvincia: selectedProvinciaId,
+      codigoCiudad: selectedCiudadId,
+      codigoParroquia: selectedParroquiaId,
       latitude: double.tryParse(_latController.text.trim()),
       longitude: double.tryParse(_lngController.text.trim()),
     );

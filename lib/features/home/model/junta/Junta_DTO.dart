@@ -1,18 +1,18 @@
 class CreateJuntaDTO {
   final String? nombre;
   final String? descripcion;
-  final int? provinciaId;
-  final int? ciudadId;
-  final int? parroquiaId;
+  final int? codigoProvincia;
+  final int? codigoCiudad;
+  final int? codigoParroquia;
   final double? latitude;
   final double? longitude;
 
   CreateJuntaDTO({
     required this.nombre,
     required this.descripcion,
-    required this.provinciaId,
-    required this.ciudadId,
-    required this.parroquiaId,
+    required this.codigoProvincia,
+    required this.codigoCiudad,
+    required this.codigoParroquia,
     required this.latitude,
     required this.longitude,
   });
@@ -21,11 +21,11 @@ class CreateJuntaDTO {
     return {
       'nombre': nombre,
       'descripcion': descripcion,
-      'provinciaId': provinciaId,
-      'ciudadId': ciudadId,
-      'parroquiaId': parroquiaId,
-      'latitud': latitude,
-      'longitud': longitude,
+      'codigoProvincia': codigoProvincia,
+      'codigoCiudad': codigoCiudad,
+      'codigoParroquia': codigoParroquia,
+      'latitude': latitude,
+      'longitude': longitude,
     };
   }
 }
