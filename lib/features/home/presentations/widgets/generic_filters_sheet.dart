@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:saviaqua/features/home/data/junta_data/junta_service.dart';
 import 'package:saviaqua/features/home/data/location_data/location_service.dart';
-import 'package:saviaqua/features/home/data/pozo_data/pozo_service.dart';
+import 'package:saviaqua/features/home/model/junta/junta_model.dart';
 import 'package:saviaqua/features/home/model/location/place_model.dart';
-import 'package:saviaqua/features/home/model/pozo/pozo_model.dart';
 
 class GenericFiltersSheet extends StatefulWidget {
   final bool showJunta;
@@ -25,7 +25,7 @@ class GenericFiltersSheet extends StatefulWidget {
 
 class _GenericFiltersSheetState extends State<GenericFiltersSheet> {
   final LocationService _locationService = LocationService();
-  final PozoService _pozoService = PozoService();
+  final JuntaService _juntaService = JuntaService();
 
   bool _isLoadingCiudades = false;
   bool _isLoadingProvincias = false;
@@ -40,13 +40,16 @@ class _GenericFiltersSheetState extends State<GenericFiltersSheet> {
   List<LugarModel> provincias = [];
   List<LugarModel> ciudades = [];
   List<LugarModel> parroquias = [];
-  List<PozoModel> juntas = [];
+  List<JuntaModel> juntas = [];
+
+  int pageSize = 15;
+  int pageNumber = 1;
 
   @override
   void initState() {
     super.initState();
     if (widget.showProvincia) _loadProvincias();
-    if (widget.showJunta) _fetchPozos();
+    if (widget.showJunta) _fetchJuntas();
   }
 
   Future<void> _loadProvincias() async {
@@ -97,12 +100,21 @@ class _GenericFiltersSheetState extends State<GenericFiltersSheet> {
     }
   }
 
-  Future<void> _fetchPozos() async {
-    setState(() => _isLoadingJuntas = true);
+  Future<void> _fetchJuntas() async {
     try {
-      juntas = await _pozoService.getPozos();
+      Map<String, String> filtros = {
+        'minified': 'false',
+      'codigoProvincia': 'null',
+      'codigoCiudad': 'null',
+      'codigoParroquia': 'null',
+      'pageSize': pageSize.toString(),  
+      'pageNumber': pageNumber.toString(),
+      };
+      setState(() => _isLoadingJuntas = true);
+      juntas = await _juntaService.getJuntasFiltrados(filtros);
+      if (!mounted) return;
     } catch (e) {
-      debugPrint("ERROR al cargar pozos: $e");
+      debugPrint("ERROR al cargar juntas: $e");
     } finally {
       if (mounted) setState(() => _isLoadingJuntas = false);
     }
@@ -140,7 +152,7 @@ class _GenericFiltersSheetState extends State<GenericFiltersSheet> {
       parroquias.clear();
     });
 
-    Navigator.pop(context, {});
+    Navigator.pop(context, <String, String>{});
   }
 
   InputDecoration _buildDropdownDecoration(String label, IconData icon) {
@@ -259,8 +271,9 @@ class _GenericFiltersSheetState extends State<GenericFiltersSheet> {
                             ciudades.clear();
                             parroquias.clear();
                           });
-                          if (widget.showCiudad)
+                          if (widget.showCiudad) {
                             _loadCiudades(codigoProvincia: value);
+                          }
                         },
               ),
               const SizedBox(height: 12),

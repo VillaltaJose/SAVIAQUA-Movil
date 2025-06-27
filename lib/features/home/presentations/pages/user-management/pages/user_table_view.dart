@@ -28,7 +28,7 @@ class _UserTableViewState extends State<UserTableView> {
   }
 
   Future<void> _fetchUsers([Map<String, String>? filters]) async {
-    setState(() => _isLoading = true); // Muestra cargando al aplicar filtros
+    setState(() => _isLoading = true);
 
     try {
       final data =
