@@ -203,7 +203,7 @@ class _UserTableViewState extends State<UserTableView> {
                           backgroundColor: Colors.white,
                         ),
                         onPressed: () {
-                          context.push('/home/add-junta');
+                          context.push('/home/add-user');
                         },
                         child: const Icon(
                           LucideIcons.userPlus,
@@ -249,9 +249,10 @@ class _UserTableViewState extends State<UserTableView> {
                               ),
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(16),
-                                onTap: () {
-                                  // Push a la vista del usuario
-                                },
+                                onTap:
+                                    () => context.push(
+                                      '/home/user/${user.codigo}',
+                                    ),
                                 child: ListTile(
                                   leading: CircleAvatar(
                                     backgroundColor: Colors.blue.withOpacity(

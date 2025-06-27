@@ -1,7 +1,8 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:saviaqua/features/auth/data/auth_notifier.dart';
 import 'package:saviaqua/features/auth/presentations/login_page.dart';
+import 'package:saviaqua/features/home/presentations/home_page.dart';
 import 'package:saviaqua/features/home/presentations/layout/home_layout.dart';
 import 'package:saviaqua/features/home/presentations/pages/add_pozo/pages/add_pozo_page.dart';
 import 'package:saviaqua/features/home/presentations/pages/junta_table/pages/junta_table_view.dart';
@@ -9,6 +10,8 @@ import 'package:saviaqua/features/home/presentations/pages/junta_table/widgets/a
 import 'package:saviaqua/features/home/presentations/pages/map/pages/map_page.dart';
 import 'package:saviaqua/features/home/presentations/pages/pozo_detail/pages/pozo_detail_page.dart';
 import 'package:saviaqua/features/home/presentations/pages/user-management/pages/user_table_view.dart';
+import 'package:saviaqua/features/home/presentations/pages/user-management/widgets/add_user_page.dart';
+import 'package:saviaqua/features/home/presentations/pages/user-management/widgets/edit_user_page.dart';
 
 GoRouter createRouter(AuthNotifier authNotifier) {
   return GoRouter(
@@ -27,7 +30,7 @@ GoRouter createRouter(AuthNotifier authNotifier) {
       ShellRoute(
         builder: (context, state, child) => HomeLayout(child: child),
         routes: [
-          GoRoute(path: '/home', builder: (_, __) => const UserTableView()),
+          GoRoute(path: '/home', builder: (_, __) => const HomePage()),
           GoRoute(
             path: '/home/map',
             builder: (_, state) {
@@ -62,6 +65,20 @@ GoRouter createRouter(AuthNotifier authNotifier) {
             builder: (_, state) {
               final refreshKey = state.uri.queryParameters['refresh'];
               return UserTableView(key: ValueKey(refreshKey));
+            },
+          ),
+          GoRoute(
+            path: '/home/add-user',
+            builder: (_, __) => const AddUserPage(),
+          ),
+          GoRoute(
+            path: '/home/user/:id',
+            builder: (_, state) {
+              final id = int.tryParse(state.pathParameters['id'] ?? '');
+              if (id == null) {
+                return const Scaffold(body: Center(child: Text('ID inválido')));
+              }
+              return EditUserPage(userId: id);
             },
           ),
         ],
