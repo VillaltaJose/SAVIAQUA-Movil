@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:saviaqua/features/home/data/user_data/user_service.dart';
 import 'package:saviaqua/features/home/model/user/user-model.dart';
+import 'package:saviaqua/features/home/presentations/widgets/generic_filters_sheet.dart';
 
 class UserTableView extends StatefulWidget {
   const UserTableView({super.key});
@@ -26,10 +27,17 @@ class _UserTableViewState extends State<UserTableView> {
     _fetchUsers();
   }
 
-  Future<void> _fetchUsers() async {
+  Future<void> _fetchUsers([Map<String, String>? filters]) async {
+    setState(() => _isLoading = true); // Muestra cargando al aplicar filtros
+
     try {
-      final data = await _userService.getUsers();
+      final data =
+          filters == null || filters.isEmpty
+              ? await _userService.getUsers()
+              : await _userService.getFilteredUsers(filters);
+
       if (!mounted) return;
+
       setState(() {
         _users = data;
         _filteredUsers = data;
@@ -37,6 +45,7 @@ class _UserTableViewState extends State<UserTableView> {
       });
     } catch (e) {
       debugPrint("ERROR al cargar usuarios: $e");
+      if (!mounted) return;
       setState(() => _isLoading = false);
     }
   }
@@ -53,6 +62,25 @@ class _UserTableViewState extends State<UserTableView> {
                 user.junta.toLowerCase().contains(query);
           }).toList();
     });
+  }
+
+  void _openFilter() async {
+    final filtros = await showModalBottomSheet<Map<String, String>>(
+      context: context,
+      isScrollControlled: true,
+      builder:
+          (context) => const GenericFiltersSheet(
+            showJunta: true,
+            showCiudad: false,
+            showProvincia: false,
+            showParroquia: false,
+          ),
+    );
+
+    if (filtros != null) {
+      debugPrint('Filtros aplicados: $filtros');
+      _fetchUsers(filtros);
+    }
   }
 
   @override
@@ -178,7 +206,7 @@ class _UserTableViewState extends State<UserTableView> {
                           backgroundColor: Colors.white,
                         ),
                         onPressed: () {
-                          // Implement filter functionality
+                          _openFilter();
                         },
                         child: const Icon(
                           Icons.tune,

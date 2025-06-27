@@ -106,8 +106,6 @@ class _UserFormState extends State<UserForm> with SingleTickerProviderStateMixin
     debugPrint(widget.user == null
         ? 'Nuevo usuario: $userData'
         : 'Usuario actualizado: $userData');
-
-    // TODO: Enviar a backend según si es edición o creación
   }
 
   @override
