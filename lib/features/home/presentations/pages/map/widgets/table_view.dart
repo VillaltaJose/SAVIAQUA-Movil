@@ -63,7 +63,12 @@ class _TableViewState extends State<TableView> {
     final filtros = await showModalBottomSheet<Map<String, String>>(
       context: context,
       isScrollControlled: true,
-      builder: (context) => const GenericFiltersSheet(mostrarCampoJunta: true),
+      builder: (context) => const GenericFiltersSheet(
+        showJunta: true,
+        showCiudad: true,
+        showProvincia: true,
+        showParroquia: true,
+        ),
     );
 
     if (filtros != null) {

@@ -30,7 +30,12 @@ class _MapPageState extends State<MapPage> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => const GenericFiltersSheet(mostrarCampoJunta: true),
+      builder: (_) => const GenericFiltersSheet(
+        showJunta: true,
+        showCiudad: true,
+        showParroquia: true,
+        showProvincia: true,
+        ),
     );
 
     if (filtros != null && mounted) {

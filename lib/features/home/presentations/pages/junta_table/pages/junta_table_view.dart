@@ -68,7 +68,12 @@ class _JuntaTableViewState extends State<JuntaTableView> {
     final filtros = await showModalBottomSheet<Map<String, String>>(
       context: context,
       isScrollControlled: true,
-      builder: (context) => const GenericFiltersSheet(mostrarCampoJunta: false),
+      builder: (context) => const GenericFiltersSheet(
+        showJunta: false,
+        showProvincia: true,
+        showCiudad: true,
+        showParroquia: true,
+        ),
     );
 
     if (filtros != null) {

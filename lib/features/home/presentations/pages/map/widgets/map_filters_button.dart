@@ -15,7 +15,12 @@ class MapFiltersButton extends StatelessWidget {
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
-          builder: (_) => const GenericFiltersSheet(mostrarCampoJunta: true),
+          builder: (_) => const GenericFiltersSheet(
+            showJunta: true,
+            showProvincia: true,
+            showCiudad: true,
+            showParroquia: true,
+          ),
         );
       },
       tooltip: 'Filtros',

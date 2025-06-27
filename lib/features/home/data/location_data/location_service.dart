@@ -18,9 +18,21 @@ class LocationService {
     return ResponseLugar.fromJson(jsonDecode(res.body));
   }
 
+  Future<ResponseLugar> getAllCiudades() async {
+    final res = await _client.get(Uri.parse('/lugares/ciudades'));
+    if (res.statusCode != 200) throw Exception('Error al cargar ciudades');
+    return ResponseLugar.fromJson(jsonDecode(res.body));
+  }
+
   Future<ResponseLugar> getParroquias(int codigoProvincia, int codigoCiudad) async {
     final res = await _client.get(Uri.parse(
         '/lugares/provincias/$codigoProvincia/ciudades/$codigoCiudad/parroquias'));
+    if (res.statusCode != 200) throw Exception('Error al cargar parroquias');
+    return ResponseLugar.fromJson(jsonDecode(res.body));
+  }
+
+  Future<ResponseLugar> getAllParroquias() async {
+    final res = await _client.get(Uri.parse('/lugares/parroquias'));
     if (res.statusCode != 200) throw Exception('Error al cargar parroquias');
     return ResponseLugar.fromJson(jsonDecode(res.body));
   }
