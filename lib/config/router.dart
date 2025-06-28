@@ -9,6 +9,7 @@ import 'package:saviaqua/features/home/presentations/pages/junta_table/pages/jun
 import 'package:saviaqua/features/home/presentations/pages/junta_table/widgets/add_junta_page.dart';
 import 'package:saviaqua/features/home/presentations/pages/map/pages/map_page.dart';
 import 'package:saviaqua/features/home/presentations/pages/pozo_detail/pages/pozo_detail_page.dart';
+import 'package:saviaqua/features/home/presentations/pages/user-management/pages/user_profile_page.dart';
 import 'package:saviaqua/features/home/presentations/pages/user-management/pages/user_table_view.dart';
 import 'package:saviaqua/features/home/presentations/pages/user-management/widgets/add_user_page.dart';
 import 'package:saviaqua/features/home/presentations/pages/user-management/widgets/edit_user_page.dart';
@@ -31,6 +32,15 @@ GoRouter createRouter(AuthNotifier authNotifier) {
         builder: (context, state, child) => HomeLayout(child: child),
         routes: [
           GoRoute(path: '/home', builder: (_, __) => const HomePage()),
+          GoRoute(
+            path: '/home/edit-user',
+            builder: (_, __) => const EditUserPage(userId: 0),
+          ),
+          GoRoute(
+            path: '/home/edit-profile',
+            builder: (_, __) => const UserProfilePage(),
+          ),
+
           GoRoute(
             path: '/home/map',
             builder: (_, state) {

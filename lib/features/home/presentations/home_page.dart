@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:saviaqua/features/auth/data/auth_notifier.dart';
 import 'package:flutter/services.dart';
@@ -17,6 +18,7 @@ class _HomePageState extends State<HomePage> {
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   String? userName;
   String? userEmail;
+  int? codigoUsuario;
 
   @override
   void initState() {
@@ -35,11 +37,13 @@ class _HomePageState extends State<HomePage> {
     final name =
         '${sessionUser['nombres']} ${sessionUser['apellidos'] ?? 'Usuario'}';
     final email = sessionUser['correo'] ?? 'email@ejemplo.com';
+    final codigo = sessionUser['codigo'] ?? 0;
 
     if (mounted) {
       setState(() {
         userName = name;
         userEmail = email;
+        codigoUsuario = codigo;
       });
     }
   }
@@ -82,12 +86,19 @@ class _HomePageState extends State<HomePage> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.bug_report_outlined),
+                      icon: const Icon(LucideIcons.edit2),
+                      tooltip: 'Perfil de Usuario',
+                      onPressed: () {
+                        context.push('/home/edit-profile');
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(LucideIcons.bug),
                       tooltip: 'Ver Storage',
                       onPressed: _printSecureStorageContent,
                     ),
                     IconButton(
-                      icon: const Icon(Icons.logout),
+                      icon: const Icon(LucideIcons.logOut),
                       tooltip: 'Cerrar sesión',
                       onPressed: () async {
                         final confirm = await showDialog<bool>(
