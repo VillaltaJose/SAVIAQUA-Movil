@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:saviaqua/core/widgets/loading_overlay.dart';
-import '../widgets/login_form.dart';
+import '../../widgets/login_form.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -107,7 +108,7 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 16),
                     TextButton(
                       onPressed: () {
-                        // Navegar a recuperación de contraseña
+                        context.push('/forgot-password');
                       },
                       style: TextButton.styleFrom(
                         backgroundColor: Colors.transparent,

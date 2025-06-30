@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:saviaqua/features/auth/data/auth_notifier.dart';
-import 'package:saviaqua/features/auth/presentations/login_page.dart';
+import 'package:saviaqua/features/auth/presentations/forgot_password/forgot_password_page.dart';
+import 'package:saviaqua/features/auth/presentations/login/login_page.dart';
 import 'package:saviaqua/features/home/presentations/home_page.dart';
 import 'package:saviaqua/features/home/presentations/layout/home_layout.dart';
 import 'package:saviaqua/features/home/presentations/pages/add_pozo/pages/add_pozo_page.dart';
@@ -21,13 +22,37 @@ GoRouter createRouter(AuthNotifier authNotifier) {
     redirect: (context, state) {
       final isLoggedIn = authNotifier.isLoggedIn;
       final goingToLogin = state.matchedLocation == '/login';
+      final goingToForgotPassword = state.matchedLocation == '/forgot-password';
 
-      if (!isLoggedIn && !goingToLogin) return '/login';
-      if (isLoggedIn && goingToLogin) return '/home';
+      if (!isLoggedIn && !goingToLogin && !goingToForgotPassword) {
+        return '/login';
+      }
+      if (isLoggedIn && goingToLogin) {
+        return '/home';
+      }
       return null;
     },
     routes: [
-      GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
+      GoRoute(path: '/login', builder: (_, __) => const ForgotPasswordPage()),
+      GoRoute(
+        path: '/forgot-password',
+        builder: (_, __) => const ForgotPasswordPage(),
+      ),
+
+      // GoRoute(
+      //   path: '/verify-code',
+      //   builder: (context, state) {
+      //     final email = state.uri.queryParameters['email']!;
+      //     return VerifyCodePage(email: email);
+      //   },
+      // ),
+      // GoRoute(
+      //   path: '/reset-password',
+      //   builder: (context, state) {
+      //     final email = state.uri.queryParameters['email']!;
+      //     return ResetPasswordPage(email: email);
+      //   },
+      // ),
       ShellRoute(
         builder: (context, state, child) => HomeLayout(child: child),
         routes: [
