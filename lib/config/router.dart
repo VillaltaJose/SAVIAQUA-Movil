@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:saviaqua/features/auth/data/auth_notifier.dart';
 import 'package:saviaqua/features/auth/presentations/forgot_password/forgot_password_page.dart';
+import 'package:saviaqua/features/auth/presentations/forgot_password/verify_code_page.dart';
 import 'package:saviaqua/features/auth/presentations/login/login_page.dart';
 import 'package:saviaqua/features/home/presentations/home_page.dart';
 import 'package:saviaqua/features/home/presentations/layout/home_layout.dart';
@@ -23,8 +24,9 @@ GoRouter createRouter(AuthNotifier authNotifier) {
       final isLoggedIn = authNotifier.isLoggedIn;
       final goingToLogin = state.matchedLocation == '/login';
       final goingToForgotPassword = state.matchedLocation == '/forgot-password';
+      final goingToVerifyCode = state.matchedLocation == '/verify-code';
 
-      if (!isLoggedIn && !goingToLogin && !goingToForgotPassword) {
+      if (!isLoggedIn && !goingToLogin && !goingToForgotPassword && !goingToVerifyCode) {
         return '/login';
       }
       if (isLoggedIn && goingToLogin) {
@@ -33,19 +35,19 @@ GoRouter createRouter(AuthNotifier authNotifier) {
       return null;
     },
     routes: [
-      GoRoute(path: '/login', builder: (_, __) => const ForgotPasswordPage()),
+      GoRoute(path: '/login', builder: (_, __) => const VerifyCodePage(email: '')),
       GoRoute(
         path: '/forgot-password',
         builder: (_, __) => const ForgotPasswordPage(),
       ),
 
-      // GoRoute(
-      //   path: '/verify-code',
-      //   builder: (context, state) {
-      //     final email = state.uri.queryParameters['email']!;
-      //     return VerifyCodePage(email: email);
-      //   },
-      // ),
+      GoRoute(
+        path: '/verify-code',
+        builder: (context, state) {
+          final email = state.uri.queryParameters['email']!;
+          return VerifyCodePage(email: email);
+        },
+      ),
       // GoRoute(
       //   path: '/reset-password',
       //   builder: (context, state) {
