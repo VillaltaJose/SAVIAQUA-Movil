@@ -71,14 +71,14 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
                   const Icon(
                     LucideIcons.shieldCheck,
                     size: 80,
-                    color: Colors.green,
+                    color: Colors.blue,
                   ),
                   const SizedBox(height: 16),
                   Text(
                     'Verifica tu código',
                     style: theme.textTheme.headlineLarge?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.green,
+                      color: Colors.blue,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -87,7 +87,7 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
                     'Hemos enviado un código al correo\n${widget.email}',
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.green.shade800,
+                      color: Colors.blue.shade800,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -122,7 +122,7 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderSide: BorderSide(
-                                  color: Colors.green,
+                                  color: Colors.blue,
                                   width: 1,
                                 ),
                               ),
@@ -158,7 +158,7 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
                               icon: const Icon(Icons.verified),
                               label: const Text('Verificar'),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
+                                backgroundColor: Colors.blue,
                                 foregroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 14,

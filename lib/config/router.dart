@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:saviaqua/features/auth/data/auth_notifier.dart';
 import 'package:saviaqua/features/auth/presentations/forgot_password/forgot_password_page.dart';
+import 'package:saviaqua/features/auth/presentations/forgot_password/reset_password_page.dart';
 import 'package:saviaqua/features/auth/presentations/forgot_password/verify_code_page.dart';
 import 'package:saviaqua/features/auth/presentations/login/login_page.dart';
 import 'package:saviaqua/features/home/presentations/home_page.dart';
@@ -24,9 +25,10 @@ GoRouter createRouter(AuthNotifier authNotifier) {
       final isLoggedIn = authNotifier.isLoggedIn;
       final goingToLogin = state.matchedLocation == '/login';
       final goingToForgotPassword = state.matchedLocation == '/forgot-password';
-      final goingToVerifyCode = state.matchedLocation == '/verify-code';
+      final goingToVerifyCode = state.matchedLocation == '/forgot-password/verify-code';
+      final goingToResetPassword = state.matchedLocation == '/forgot-password/reset';
 
-      if (!isLoggedIn && !goingToLogin && !goingToForgotPassword && !goingToVerifyCode) {
+      if (!isLoggedIn && !goingToLogin && !goingToForgotPassword && !goingToVerifyCode && !goingToResetPassword) {
         return '/login';
       }
       if (isLoggedIn && goingToLogin) {
@@ -35,26 +37,27 @@ GoRouter createRouter(AuthNotifier authNotifier) {
       return null;
     },
     routes: [
-      GoRoute(path: '/login', builder: (_, __) => const VerifyCodePage(email: '')),
+      GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
       GoRoute(
         path: '/forgot-password',
         builder: (_, __) => const ForgotPasswordPage(),
       ),
 
       GoRoute(
-        path: '/verify-code',
+        path: '/forgot-password/verify-code',
         builder: (context, state) {
           final email = state.uri.queryParameters['email']!;
           return VerifyCodePage(email: email);
         },
       ),
-      // GoRoute(
-      //   path: '/reset-password',
-      //   builder: (context, state) {
-      //     final email = state.uri.queryParameters['email']!;
-      //     return ResetPasswordPage(email: email);
-      //   },
-      // ),
+      GoRoute(
+        path: '/forgot-password/reset',
+        builder: (context, state) {
+          final email = state.uri.queryParameters['email']!;
+          final code = state.uri.queryParameters['code'];
+          return ResetPasswordPage(email: email, code: code ?? '');
+        },
+      ),
       ShellRoute(
         builder: (context, state, child) => HomeLayout(child: child),
         routes: [
