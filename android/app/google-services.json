@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "295775124303",
+    "project_id": "saviaqua-b85dd",
+    "storage_bucket": "saviaqua-b85dd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:295775124303:android:5d03f6dee07254fba4233a",
+        "android_client_info": {
+          "package_name": "com.example.saviaqua"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyASN58jW1HatjbiMsjXCeSJTqbuXhAhmIU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

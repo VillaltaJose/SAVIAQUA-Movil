@@ -11,6 +11,7 @@ import 'package:saviaqua/features/home/presentations/pages/add_pozo/pages/add_po
 import 'package:saviaqua/features/home/presentations/pages/junta_table/pages/junta_table_view.dart';
 import 'package:saviaqua/features/home/presentations/pages/junta_table/widgets/add_junta_page.dart';
 import 'package:saviaqua/features/home/presentations/pages/map/pages/map_page.dart';
+import 'package:saviaqua/features/home/presentations/pages/notification/pages/notification_page.dart';
 import 'package:saviaqua/features/home/presentations/pages/pozo_detail/pages/pozo_detail_page.dart';
 import 'package:saviaqua/features/home/presentations/pages/user-management/pages/user_profile_page.dart';
 import 'package:saviaqua/features/home/presentations/pages/user-management/pages/user_table_view.dart';
@@ -120,6 +121,10 @@ GoRouter createRouter(AuthNotifier authNotifier) {
               }
               return EditUserPage(userId: id);
             },
+          ),
+          GoRoute(
+            path: '/home/notifications',
+            builder: (_, __) => const NotificationPage(),
           ),
         ],
       ),
