@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:saviaqua/core/widgets/loading_overlay.dart';
 import 'package:saviaqua/features/home/data/junta_data/junta_service.dart';
 import 'package:saviaqua/features/home/model/junta/junta_model.dart';
 import 'package:saviaqua/features/home/presentations/widgets/generic_filters_sheet.dart';
@@ -68,12 +69,13 @@ class _JuntaTableViewState extends State<JuntaTableView> {
     final filtros = await showModalBottomSheet<Map<String, String>>(
       context: context,
       isScrollControlled: true,
-      builder: (context) => const GenericFiltersSheet(
-        showJunta: false,
-        showProvincia: true,
-        showCiudad: true,
-        showParroquia: true,
-        ),
+      builder:
+          (context) => const GenericFiltersSheet(
+            showJunta: false,
+            showProvincia: true,
+            showCiudad: true,
+            showParroquia: true,
+          ),
     );
 
     if (filtros != null) {
@@ -257,87 +259,94 @@ class _JuntaTableViewState extends State<JuntaTableView> {
 
               // Lista de juntas
               Expanded(
-                child:
-                    _isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : _juntasFiltradas.isEmpty
-                        ? const Center(child: Text('No se encontraron juntas'))
-                        : ListView.builder(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 3,
-                            horizontal: 8,
+                child: LoadingOverlay(
+                  isLoading: _isLoading,
+                  message: 'Cargando Juntas...',
+                  backgroundColor: Colors.white,
+                  style: LoadingStyle.drop,
+                  isBlurEnabled: false,
+                  child:
+                      _juntasFiltradas.isEmpty
+                          ? const Center(
+                            child: Text('No se encontraron juntas'),
+                          )
+                          : ListView.builder(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 3,
+                              horizontal: 8,
+                            ),
+                            itemCount: _juntasFiltradas.length,
+                            itemBuilder: (_, index) {
+                              final junta = _juntasFiltradas[index];
+                              return Card(
+                                elevation: 6,
+                                color: Colors.white,
+                                margin: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                  horizontal: 3,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  side: BorderSide(
+                                    color: Colors.grey.shade200,
+                                    width: 1.5,
+                                  ),
+                                ),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(16),
+                                  onTap: () {
+                                    // Push a la vista de la junta si se desea
+                                  },
+                                  child: ListTile(
+                                    contentPadding: const EdgeInsets.all(12),
+                                    leading:
+                                        junta.urlLogo != null
+                                            ? ClipOval(
+                                              child: Image.network(
+                                                junta.urlLogo!,
+                                                width: 40,
+                                                height: 40,
+                                                fit: BoxFit.cover,
+                                              ),
+                                            )
+                                            : CircleAvatar(
+                                              backgroundColor: Colors.blueAccent
+                                                  .withOpacity(0.1),
+                                              child: const Icon(
+                                                Icons.home_work_outlined,
+                                                color: Colors.blueAccent,
+                                                size: 24,
+                                              ),
+                                            ),
+                                    title: Text(
+                                      junta.nombre,
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    subtitle: Text(
+                                      'Ubicación: ${junta.provincia}, ${junta.ciudad}, ${junta.parroquia}',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                    trailing: Text(
+                                      junta.codigo.toString(),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                        color: Colors.blueAccent,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
-                          itemCount: _juntasFiltradas.length,
-                          itemBuilder: (_, index) {
-                            final junta = _juntasFiltradas[index];
-                            return Card(
-                              elevation: 6,
-                              color: Colors.white,
-                              margin: const EdgeInsets.symmetric(
-                                vertical: 10,
-                                horizontal: 3,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                side: BorderSide(
-                                  color: Colors.grey.shade200,
-                                  width: 1.5,
-                                ),
-                              ),
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(16),
-                                onTap: () {
-                                  // Push a la vista de la junta si se desea
-                                },
-                                child: ListTile(
-                                  contentPadding: const EdgeInsets.all(12),
-                                  leading:
-                                      junta.urlLogo != null
-                                          ? ClipOval(
-                                            child: Image.network(
-                                              junta.urlLogo!,
-                                              width: 40,
-                                              height: 40,
-                                              fit: BoxFit.cover,
-                                            ),
-                                          )
-                                          : CircleAvatar(
-                                            backgroundColor: Colors.blueAccent
-                                                .withOpacity(0.1),
-                                            child: const Icon(
-                                              Icons.home_work_outlined,
-                                              color: Colors.blueAccent,
-                                              size: 24,
-                                            ),
-                                          ),
-                                  title: Text(
-                                    junta.nombre,
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                  subtitle: Text(
-                                    'Ubicación: ${junta.provincia}, ${junta.ciudad}, ${junta.parroquia}',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.black54,
-                                    ),
-                                  ),
-                                  trailing: Text(
-                                    junta.codigo.toString(),
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                      color: Colors.blueAccent,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
+                ),
               ),
             ],
           ),

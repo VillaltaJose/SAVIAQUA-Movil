@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:saviaqua/core/widgets/loading_overlay.dart';
 import 'package:saviaqua/features/home/data/user_data/user_service.dart';
 import 'package:saviaqua/features/home/model/user/user-model.dart';
 import 'package:saviaqua/features/home/presentations/pages/user-management/widgets/user_form.dart';
@@ -53,11 +54,16 @@ class _EditUserPageState extends State<EditUserPage> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : error != null
-              ? Center(child: Text(error!))
-              : UserForm(user: user),
+      body: LoadingOverlay(
+        isLoading: isLoading,
+        message: 'Cargando Juntas...',
+        backgroundColor: Colors.white,
+        style: LoadingStyle.drop,
+        isBlurEnabled: false,
+        child: error != null
+            ? Center(child: Text(error!, style: TextStyle(color: Colors.red), textAlign: TextAlign.center))
+            : UserForm(user: user),
+      ),
     );
   }
 }

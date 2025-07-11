@@ -59,51 +59,52 @@ class _LoginFormState extends State<LoginForm> {
   bool _obscureText = true;
 
   void _mostrarModalError(String mensaje) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+  if (!mounted) return;
+
+  showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      backgroundColor: Colors.white,
+      titlePadding: const EdgeInsets.all(16),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+      actionsPadding: const EdgeInsets.only(right: 8, bottom: 8),
+      title: Row(
+        children: const [
+          Icon(Icons.error_outline, color: Colors.red, size: 28),
+          SizedBox(width: 10),
+          Text(
+            'Error',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
             ),
-            backgroundColor: Colors.white,
-            titlePadding: const EdgeInsets.all(16),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-            actionsPadding: const EdgeInsets.only(right: 8, bottom: 8),
-            title: Row(
-              children: const [
-                Icon(Icons.error_outline, color: Colors.red, size: 28),
-                SizedBox(width: 10),
-                Text(
-                  'Error',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-            content: Text(
-              mensaje,
-              style: const TextStyle(fontSize: 16, color: Colors.black87),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: Colors.red,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text('Aceptar'),
-              ),
-            ],
           ),
-    );
-  }
+        ],
+      ),
+      content: Text(
+        mensaje,
+        style: const TextStyle(fontSize: 16, color: Colors.black87),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.white,
+            backgroundColor: Colors.red,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          child: const Text('Aceptar'),
+        ),
+      ],
+    ),
+  );
+}
 
   @override
   void dispose() {

@@ -21,7 +21,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // ACTIVA BORDES DE DEBUG VISUALES
-  // debugPaintSizeEnabled = true;
+  //  debugPaintSizeEnabled = true;
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 

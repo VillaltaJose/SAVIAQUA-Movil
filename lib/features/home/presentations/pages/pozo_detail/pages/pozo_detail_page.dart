@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:saviaqua/core/widgets/loading_overlay.dart';
 import 'package:saviaqua/features/home/data/pozo_data/pozo_service.dart';
 import 'package:saviaqua/features/home/data/pozo_detail_data/pozo_details_service.dart';
 import 'package:saviaqua/features/home/model/pozo/pozo_model.dart';
@@ -147,14 +148,15 @@ class _PozoDetailsPageState extends State<PozoDetailsPage> {
     return '${date.day}/${date.month}/${date.year}';
   }
 
-  @override
-  Widget build(BuildContext context) {
-    
-    if (isLoadingPozo || isLoadingDetails) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
+ @override
+Widget build(BuildContext context) {
+  final bool isLoading = isLoadingPozo || isLoadingDetails;
 
-    return Scaffold(
+  return LoadingOverlay(
+    isLoading: isLoading,
+    message: 'Cargando datos...',
+    style: LoadingStyle.drop,
+    child: Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 1,
@@ -234,8 +236,7 @@ class _PozoDetailsPageState extends State<PozoDetailsPage> {
                             : 'Seleccionar rango de fechas',
                         style: TextStyle(
                           fontSize: 16,
-                          color:
-                              startDate != null ? Colors.black87 : Colors.grey,
+                          color: startDate != null ? Colors.black87 : Colors.grey,
                         ),
                       ),
                     ),
@@ -277,10 +278,11 @@ class _PozoDetailsPageState extends State<PozoDetailsPage> {
                     '${ultimaMedida!.m2}',
                     Icons.bolt,
                   ),
-                  _buildMeasureCard('Med 3',
+                  _buildMeasureCard(
+                    'Med 3',
                     '${ultimaMedida!.m3}',
-                    Icons.water_drop),
-                    
+                    Icons.water_drop,
+                  ),
                   _buildMeasureCard(
                     'Med 4',
                     '${ultimaMedida!.m4}',
@@ -306,8 +308,9 @@ class _PozoDetailsPageState extends State<PozoDetailsPage> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildCloroPanel(PozoDetailsModel medida) {
     return Container(

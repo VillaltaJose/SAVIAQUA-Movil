@@ -251,10 +251,12 @@ class _PozoFormState extends State<PozoForm>
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
-       if (mounted) {
-          context.pop();
-          context.go('/home/map?refresh=${DateTime.now().millisecondsSinceEpoch}');
-        }
+      if (mounted) {
+        context.pop();
+        context.go(
+          '/home/map?refresh=${DateTime.now().millisecondsSinceEpoch}',
+        );
+      }
     }
   }
 
@@ -730,7 +732,4 @@ class _PozoFormState extends State<PozoForm>
               ),
     );
   }
-
-
-  
 }

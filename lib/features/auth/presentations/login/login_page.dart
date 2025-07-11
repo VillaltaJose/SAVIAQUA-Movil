@@ -14,6 +14,7 @@ class _LoginPageState extends State<LoginPage> {
   bool _loading = false;
 
   void setLoading(bool value) {
+    if (value) FocusScope.of(context).unfocus();
     setState(() {
       _loading = value;
     });
@@ -24,6 +25,9 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       body: LoadingOverlay(
         isLoading: _loading,
+        message: 'Iniciando sesión...',
+        backgroundColor: Colors.white,
+        style: LoadingStyle.drop, // o .dots, .drop, .defaultSpinner
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -39,7 +43,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ),
-        
+
             Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 32.0),
@@ -55,7 +59,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     const SizedBox(height: 5),
-        
+
                     Center(
                       child: RichText(
                         text: TextSpan(
@@ -87,7 +91,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     const SizedBox(height: 22),
-        
+
                     Container(
                       padding: const EdgeInsets.all(24.0),
                       decoration: BoxDecoration(
@@ -104,7 +108,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       child: LoginForm(setLoading: setLoading),
                     ),
-        
+
                     const SizedBox(height: 16),
                     TextButton(
                       onPressed: () {
@@ -119,6 +123,7 @@ class _LoginPageState extends State<LoginPage> {
                         '¿Olvidaste tu contraseña?',
                         style: TextStyle(color: Colors.white, fontSize: 16),
                       ),
+                      
                     ),
                   ],
                 ),

@@ -4,6 +4,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
+import 'package:saviaqua/core/widgets/loading_overlay.dart';
 import 'package:saviaqua/features/home/data/pozo_data/pozo_service.dart';
 import 'package:saviaqua/features/home/data/pozo_detail_data/pozo_details_service.dart';
 import 'package:saviaqua/features/home/model/pozo/pozo_model.dart';
@@ -19,6 +20,7 @@ class MapView extends StatefulWidget {
 class MapViewState extends State<MapView> {
   final Completer<GoogleMapController> _controller = Completer();
   late GoogleMapController _mapController;
+  bool isLoading = true;
 
   final LatLng _center = const LatLng(-1.8312, -78.1834);
   final PozoService _pozoService = PozoService();
@@ -29,6 +31,7 @@ class MapViewState extends State<MapView> {
   String errorDetails = '';
   final PozoDetailsService _pozoDetailsService = PozoDetailsService();
   PozoDetailsModel? pozoDetailsModel;
+  bool filtersApplied = false;
 
   @override
   void initState() {
@@ -61,6 +64,12 @@ class MapViewState extends State<MapView> {
   }
 
   Future<void> fetchPozos({Map<String, String>? filtros}) async {
+    if (mounted) setState(() => isLoading = true);
+    if (filtros != null) {
+      filtersApplied = true;
+    } else {
+      filtersApplied = false;
+    }
     try {
       final pozos =
           filtros == null
@@ -78,7 +87,7 @@ class MapViewState extends State<MapView> {
             );
           }).toSet();
 
-      setState(() => _markers = markers);
+      if (mounted) setState(() => _markers = markers);
 
       if (pozos.isNotEmpty) {
         if (pozos.length == 1) {
@@ -97,6 +106,8 @@ class MapViewState extends State<MapView> {
       }
     } catch (e) {
       debugPrint("ERROR al cargar pozos: $e");
+    } finally {
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
@@ -192,7 +203,9 @@ class MapViewState extends State<MapView> {
                         Icon(
                           Icons.water_drop,
                           size: 24,
-                          color: _getCloroColor(pozoDetailsModel!.cloroResidual),
+                          color: _getCloroColor(
+                            pozoDetailsModel!.cloroResidual,
+                          ),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
@@ -262,15 +275,72 @@ class MapViewState extends State<MapView> {
 
   @override
   Widget build(BuildContext context) {
-    return GoogleMap(
-      initialCameraPosition: CameraPosition(target: _center, zoom: 6.5),
-      onMapCreated: (GoogleMapController controller) {
-        _controller.complete(controller);
-        _mapController = controller;
-      },
-      markers: _markers,
-      myLocationEnabled: true,
-      zoomControlsEnabled: false,
+    return LoadingOverlay(
+      isLoading: isLoading,
+      message: 'Cargando mapa...',
+      style: LoadingStyle.drop,
+      child: Stack(
+        children: [
+          GoogleMap(
+            initialCameraPosition: CameraPosition(target: _center, zoom: 6.5),
+            onMapCreated: (GoogleMapController controller) {
+              _controller.complete(controller);
+              _mapController = controller;
+            },
+            markers: _markers,
+            myLocationEnabled: true,
+            zoomControlsEnabled: false,
+          ),
+          if (!isLoading && _markers.isEmpty)
+            Positioned(
+              bottom: 20,
+              left: 20,
+              right: 20,
+              child: Material(
+                elevation: 5,
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.redAccent.withOpacity(0.9),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.error_outline, color: Colors.white),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'No se encontraron pozos',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                      filtersApplied
+                          ? const SizedBox.shrink()
+                          : TextButton(
+                            onPressed: () {
+                              fetchPozos();
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              backgroundColor: Colors.white24,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Text('Recargar'),
+                          ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:saviaqua/core/widgets/loading_overlay.dart';
 import 'package:saviaqua/features/home/data/pozo_data/pozo_service.dart';
 import 'package:saviaqua/features/home/model/pozo/pozo_model.dart';
 import '../../../widgets/generic_filters_sheet.dart';
@@ -63,12 +64,13 @@ class _TableViewState extends State<TableView> {
     final filtros = await showModalBottomSheet<Map<String, String>>(
       context: context,
       isScrollControlled: true,
-      builder: (context) => const GenericFiltersSheet(
-        showJunta: true,
-        showCiudad: true,
-        showProvincia: true,
-        showParroquia: true,
-        ),
+      builder:
+          (context) => const GenericFiltersSheet(
+            showJunta: true,
+            showCiudad: true,
+            showProvincia: true,
+            showParroquia: true,
+          ),
     );
 
     if (filtros != null) {
@@ -217,91 +219,95 @@ class _TableViewState extends State<TableView> {
               ),
 
               Expanded(
-                child:
-                    _isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : _pozosFiltrados.isEmpty
-                        ? const Center(child: Text('No se encontraron pozos'))
-                        : ListView.builder(
+                child: LoadingOverlay(
+                  isLoading: _isLoading,
+                  message: 'Cargando Pozos...',
+                  backgroundColor: Colors.white,
+                  style: LoadingStyle.drop,
+                  isBlurEnabled: false,
+                  child: _pozosFiltrados.isEmpty
+                      ? const Center(child: Text('No se encontraron pozos'))
+                      : ListView.builder(
                           padding: const EdgeInsets.symmetric(
                             vertical: 3,
-                            horizontal: 8,
+                              horizontal: 8,
+                            ),
+                            itemCount: _pozosFiltrados.length,
+                            itemBuilder: (_, index) {
+                              final pozo = _pozosFiltrados[index];
+                              return Card(
+                                elevation: 6,
+                                color: Colors.white,
+                                margin: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                  horizontal: 3,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  side: BorderSide(
+                                    color: Colors.grey.shade200,
+                                    width: 1.5,
+                                  ),
+                                ),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(16),
+                                  onTap: () {
+                                    context.push('/home/pozo/${pozo.codigo}');
+                                  },
+                                  child: ListTile(
+                                    contentPadding: const EdgeInsets.all(12),
+                                    leading: CircleAvatar(
+                                      backgroundColor: Colors.blueAccent
+                                          .withOpacity(0.1),
+                                      child: const Icon(
+                                        Icons.water_drop_outlined,
+                                        color: Colors.blueAccent,
+                                        size: 28,
+                                      ),
+                                    ),
+                                    title: Text(
+                                      pozo.nombre,
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Ubicación: ${pozo.provincia}, ${pozo.ciudad}, ${pozo.parroquia}',
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.black54,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          'Junta: ${pozo.junta}',
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.black38,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    trailing: Text(
+                                      pozo.codigo.toString(),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                        color: Colors.blueAccent,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
-                          itemCount: _pozosFiltrados.length,
-                          itemBuilder: (_, index) {
-                            final pozo = _pozosFiltrados[index];
-                            return Card(
-                              elevation: 6,
-                              color: Colors.white,
-                              margin: const EdgeInsets.symmetric(
-                                vertical: 10,
-                                horizontal: 3,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                side: BorderSide(
-                                  color: Colors.grey.shade200,
-                                  width: 1.5,
-                                ),
-                              ),
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(16),
-                                onTap: () {
-                                  context.push('/home/pozo/${pozo.codigo}');
-                                },
-                                child: ListTile(
-                                  contentPadding: const EdgeInsets.all(12),
-                                  leading: CircleAvatar(
-                                    backgroundColor: Colors.blueAccent
-                                        .withOpacity(0.1),
-                                    child: const Icon(
-                                      Icons.water_drop_outlined,
-                                      color: Colors.blueAccent,
-                                      size: 28,
-                                    ),
-                                  ),
-                                  title: Text(
-                                    pozo.nombre,
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                  subtitle: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Ubicación: ${pozo.provincia}, ${pozo.ciudad}, ${pozo.parroquia}',
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.black54,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        'Junta: ${pozo.junta}',
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.black38,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  trailing: Text(
-                                    pozo.codigo.toString(),
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                      color: Colors.blueAccent,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
+                ),
               ),
             ],
           ),

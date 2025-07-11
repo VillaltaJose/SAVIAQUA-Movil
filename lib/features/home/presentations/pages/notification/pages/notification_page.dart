@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:saviaqua/core/widgets/loading_overlay.dart';
 import 'package:saviaqua/features/home/data/notification-data/notification_service_mock.dart';
 import 'package:saviaqua/features/home/model/notification/notification_model.dart';
 
@@ -45,13 +46,15 @@ class _NotificationPageState extends State<NotificationPage> {
         elevation: 1,
         foregroundColor: Colors.blue,
       ),
-      body:
-          _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _notifications.isEmpty
+      body: LoadingOverlay(
+        isLoading: _isLoading,
+        message: 'Cargando notificaciones...',
+        backgroundColor: Colors.white,
+        style: LoadingStyle.drop, // o .dots, .drop, .defaultSpinner
+        child: _notifications.isEmpty
               ? const Center(child: Text('No hay notificaciones'))
               : ListView.builder(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(12), 
                 itemCount: _notifications.length,
                 itemBuilder: (_, index) {
                   final notification = _notifications[index];
@@ -96,6 +99,7 @@ class _NotificationPageState extends State<NotificationPage> {
                   );
                 },
               ),
+      ),
     );
   }
 }

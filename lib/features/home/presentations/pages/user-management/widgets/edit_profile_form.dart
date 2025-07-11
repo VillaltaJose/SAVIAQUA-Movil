@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:saviaqua/core/widgets/loading_overlay.dart';
 import 'package:saviaqua/features/home/data/profile_data/profile_service.dart';
 import 'package:saviaqua/features/home/model/profile/profile-model.dart';
 import 'package:saviaqua/features/home/presentations/widgets/generic_widgets.dart';
@@ -96,166 +97,173 @@ class _EditProfileFormState extends State<EditProfileForm>
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoadingUser) {
-      return const Center(
-        child: CircularProgressIndicator(color: Colors.green),
-      );
-    }
-
-    if (_profile == null) {
-      return const Center(
-        child: Text('No se pudo cargar la información del usuario.'),
-      );
-    }
-
-    return Padding(
-      padding: const EdgeInsets.all(12.0),
-      child: FadeTransition(
-        opacity: _fadeAnimation,
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              buildSectionCard(
-                title: 'Información básica',
-                icon: Icons.person,
-                children: [
-                  buildAnimatedField(
-                    delay: 100,
-                    child: inputField(
-                      _nameController,
-                      'Nombres',
-                      'Ej. Daniel',
-                      Icons.person,
-                      validator: true,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  buildAnimatedField(
-                    delay: 200,
-                    child: inputField(
-                      _lastnameController,
-                      'Apellidos',
-                      'Ej. Pérez',
-                      Icons.person_outline,
-                      validator: true,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  buildAnimatedField(
-                    delay: 300,
-                    child: inputField(
-                      _emailController,
-                      'Correo electrónico',
-                      'Ej. daniel.perez@example.com',
-                      Icons.email,
-                      validator: true,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-              buildSectionCard(
-                title: 'Información institucional',
-                icon: Icons.business,
-                children: [
-                  buildAnimatedField(
-                    delay: 400,
-                    child: inputField(
-                      _juntaController,
-                      'Junta',
-                      'Ej. Junta de Vecinos',
-                      Icons.home_work,
-                      readOnly: true,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  buildAnimatedField(
-                    delay: 500,
-                    child: inputField(
-                      _roleController,
-                      'Rol',
-                      'Ej. Administrador',
-                      Icons.verified_user,
-                      readOnly: true,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              buildSectionCard(
-                title: 'Cambiar contraseña',
-                icon: Icons.lock_outline,
-                children: [
-                  buildAnimatedField(
-                    delay: 600,
-                    child: inputField(
-                      _oldPassController,
-                      'Contraseña anterior',
-                      '',
-                      Icons.lock,
-                      validator: true,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  buildAnimatedField(
-                    delay: 700,
-                    child: inputField(
-                      _newPassController,
-                      'Nueva contraseña',
-                      '',
-                      Icons.lock_open,
-                      validator: true,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  buildAnimatedField(
-                    delay: 750,
-                    child: inputField(
-                      _repeatPassController,
-                      'Repita su nueva contraseña',
-                      '',
-                      Icons.lock_outline,
-                      validator: true,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildPasswordRules(),
-                ],
-              ),
-
-              const SizedBox(height: 32),
-
-              buildAnimatedField(
-                delay: 800,
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.7,
-                  height: 50,
-                  child: ElevatedButton.icon(
-                    onPressed: _submitForm,
-                    icon: const Icon(Icons.save, color: Colors.white),
-                    label: const Text(
-                      'Guardar cambios',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+    return SizedBox(
+      height: MediaQuery.of(context).size.height * 0.9,
+      child: Center(
+        child: LoadingOverlay(
+          isLoading: _isLoadingUser,
+          message: 'Cargando Juntas...',
+          backgroundColor: Colors.white,
+          style: LoadingStyle.drop,
+          isBlurEnabled: false,
+          child:
+              _profile == null
+                  ? Text(
+                    'No se pudo cargar la información del usuario.',
+                    style: TextStyle(color: Colors.red),
+                    textAlign: TextAlign.center,
+                  )
+                  : Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          children: [
+                            buildSectionCard(
+                              title: 'Información básica',
+                              icon: Icons.person,
+                              children: [
+                                buildAnimatedField(
+                                  delay: 100,
+                                  child: inputField(
+                                    _nameController,
+                                    'Nombres',
+                                    'Ej. Daniel',
+                                    Icons.person,
+                                    validator: true,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                buildAnimatedField(
+                                  delay: 200,
+                                  child: inputField(
+                                    _lastnameController,
+                                    'Apellidos',
+                                    'Ej. Pérez',
+                                    Icons.person_outline,
+                                    validator: true,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                buildAnimatedField(
+                                  delay: 300,
+                                  child: inputField(
+                                    _emailController,
+                                    'Correo electrónico',
+                                    'Ej. daniel.perez@example.com',
+                                    Icons.email,
+                                    validator: true,
+                                  ),
+                                ),
+                              ],
+                            ),
+    
+                            const SizedBox(height: 16),
+                            buildSectionCard(
+                              title: 'Información institucional',
+                              icon: Icons.business,
+                              children: [
+                                buildAnimatedField(
+                                  delay: 400,
+                                  child: inputField(
+                                    _juntaController,
+                                    'Junta',
+                                    'Ej. Junta de Vecinos',
+                                    Icons.home_work,
+                                    readOnly: true,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                buildAnimatedField(
+                                  delay: 500,
+                                  child: inputField(
+                                    _roleController,
+                                    'Rol',
+                                    'Ej. Administrador',
+                                    Icons.verified_user,
+                                    readOnly: true,
+                                  ),
+                                ),
+                              ],
+                            ),
+    
+                            const SizedBox(height: 16),
+    
+                            buildSectionCard(
+                              title: 'Cambiar contraseña',
+                              icon: Icons.lock_outline,
+                              children: [
+                                buildAnimatedField(
+                                  delay: 600,
+                                  child: inputField(
+                                    _oldPassController,
+                                    'Contraseña anterior',
+                                    '',
+                                    Icons.lock,
+                                    validator: true,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                buildAnimatedField(
+                                  delay: 700,
+                                  child: inputField(
+                                    _newPassController,
+                                    'Nueva contraseña',
+                                    '',
+                                    Icons.lock_open,
+                                    validator: true,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                buildAnimatedField(
+                                  delay: 750,
+                                  child: inputField(
+                                    _repeatPassController,
+                                    'Repita su nueva contraseña',
+                                    '',
+                                    Icons.lock_outline,
+                                    validator: true,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                _buildPasswordRules(),
+                              ],
+                            ),
+    
+                            const SizedBox(height: 32),
+    
+                            buildAnimatedField(
+                              delay: 800,
+                              child: SizedBox(
+                                width: MediaQuery.of(context).size.width * 0.7,
+                                height: 50,
+                                child: ElevatedButton.icon(
+                                  onPressed: _submitForm,
+                                  icon: const Icon(Icons.save, color: Colors.white),
+                                  label: const Text(
+                                    'Guardar cambios',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(22),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(22),
-                      ),
-                    ),
                   ),
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

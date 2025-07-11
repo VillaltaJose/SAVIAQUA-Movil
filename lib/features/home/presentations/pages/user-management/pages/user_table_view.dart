@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:saviaqua/core/widgets/loading_overlay.dart';
 import 'package:saviaqua/features/home/data/user_data/user_service.dart';
 import 'package:saviaqua/features/home/model/user/user-model.dart';
 import 'package:saviaqua/features/home/presentations/widgets/generic_filters_sheet.dart';
@@ -246,79 +247,84 @@ class _UserTableViewState extends State<UserTableView> {
 
               // User list
               Expanded(
-                child:
-                    _isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : _filteredUsers.isEmpty
-                        ? const Center(
-                          child: Text('No se encontraron usuarios'),
-                        )
-                        : ListView.builder(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          itemCount: _filteredUsers.length,
-                          itemBuilder: (_, index) {
-                            final user = _filteredUsers[index];
-                            return Card(
-                              elevation: 6,
-                              color: Colors.white,
-                              margin: const EdgeInsets.symmetric(
-                                vertical: 10,
-                                horizontal: 3,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                side: BorderSide(
-                                  color: Colors.grey.shade200,
-                                  width: 1.5,
+                child: LoadingOverlay(
+                  isLoading: _isLoading,
+                  message: 'Cargando usuarios...',
+                  backgroundColor: Colors.white,
+                  style: LoadingStyle.drop,
+                  isBlurEnabled: false,
+                  child:
+                      _filteredUsers.isEmpty
+                          ? const Center(
+                            child: Text('No se encontraron usuarios'),
+                          )
+                          : ListView.builder(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            itemCount: _filteredUsers.length,
+                            itemBuilder: (_, index) {
+                              final user = _filteredUsers[index];
+                              return Card(
+                                elevation: 6,
+                                color: Colors.white,
+                                margin: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                  horizontal: 3,
                                 ),
-                              ),
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(16),
-                                onTap:
-                                    () => context.push(
-                                      '/home/user/${user.codigo}',
-                                    ),
-                                child: ListTile(
-                                  leading: CircleAvatar(
-                                    backgroundColor: Colors.blue.withOpacity(
-                                      0.1,
-                                    ),
-                                    child: const Icon(
-                                      Icons.person_outline,
-                                      color: Colors.blue,
-                                    ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  side: BorderSide(
+                                    color: Colors.grey.shade200,
+                                    width: 1.5,
                                   ),
-                                  title: Text(
-                                    '${user.nombres} ${user.apellidos}',
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  subtitle: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(user.correo),
-                                      Text('Rol: ${user.rol}'),
-                                      Text('Junta: ${user.junta}'),
-                                      Text(
-                                        'Creado: ${user.fechaCreacion.toLocal().toString().substring(0, 10)}',
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.black45,
-                                        ),
+                                ),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(16),
+                                  onTap:
+                                      () => context.push(
+                                        '/home/user/${user.codigo}',
                                       ),
-                                    ],
+                                  child: ListTile(
+                                    leading: CircleAvatar(
+                                      backgroundColor: Colors.blue.withOpacity(
+                                        0.1,
+                                      ),
+                                      child: const Icon(
+                                        Icons.person_outline,
+                                        color: Colors.blue,
+                                      ),
+                                    ),
+                                    title: Text(
+                                      '${user.nombres} ${user.apellidos}',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(user.correo),
+                                        Text('Rol: ${user.rol}'),
+                                        Text('Junta: ${user.junta}'),
+                                        Text(
+                                          'Creado: ${user.fechaCreacion.toLocal().toString().substring(0, 10)}',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.black45,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            );
-                          },
-                        ),
+                              );
+                            },
+                          ),
+                ),
               ),
             ],
           ),
