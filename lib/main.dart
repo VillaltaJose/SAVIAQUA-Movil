@@ -1,11 +1,11 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:saviaqua/config/router.dart';
 import 'package:saviaqua/features/auth/data/auth_notifier.dart';
@@ -23,6 +23,8 @@ void main() async {
   // ACTIVA BORDES DE DEBUG VISUALES
   //  debugPaintSizeEnabled = true;
 
+  await dotenv.load();
+
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   await initializeDateFormatting('es_ES', null);
@@ -31,6 +33,7 @@ void main() async {
   runApp(
     ChangeNotifierProvider(create: (_) => AuthNotifier(), child: const MyApp()),
   );
+
 }
 
 class MyApp extends StatefulWidget {

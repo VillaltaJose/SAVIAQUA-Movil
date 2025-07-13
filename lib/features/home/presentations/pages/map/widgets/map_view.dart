@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:async';
@@ -11,6 +12,9 @@ import 'package:saviaqua/features/home/model/pozo/pozo_model.dart';
 import 'package:saviaqua/features/home/model/pozo_details/pozo_details_model.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class MapView extends StatefulWidget {
   const MapView({super.key});
@@ -49,7 +53,6 @@ class MapViewState extends State<MapView> {
     _getCurrentLocation();
   }
 
-  // Método para obtener la ubicación actual
   Future<void> _getCurrentLocation() async {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -81,7 +84,6 @@ class MapViewState extends State<MapView> {
     }
   }
 
-  // Método para abrir navegación
   Future<void> _openNavigation(double lat, double lng) async {
     final String googleMapsUrl =
         'https://www.google.com/maps/dir/?api=1'
@@ -100,42 +102,71 @@ class MapViewState extends State<MapView> {
     }
   }
 
-  void _drawRouteTo(LatLng destination) {
+  Future<void> _getRoutePolyline(LatLng destination) async {
     if (_currentLocation == null) return;
 
-    final polylineId = const PolylineId('user_to_pozo');
+    final String apiKey = dotenv.env['API_KEY_GOOGLE_MAPS'] ?? '';
+    final origin =
+        '${_currentLocation!.latitude},${_currentLocation!.longitude}';
+    final dest = '${destination.latitude},${destination.longitude}';
 
-    final polyline = Polyline(
-      polylineId: polylineId,
-      color: Colors.blueAccent,
-      width: 5,
-      points: [_currentLocation!, destination],
-    );
+    final url =
+        'https://maps.googleapis.com/maps/api/directions/json?origin=$origin&destination=$dest&key=$apiKey';
 
-    setState(() {
-      _polylines = {polyline};
-    });
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
 
-    final bounds = LatLngBounds(
-      southwest: LatLng(
-        _currentLocation!.latitude < destination.latitude
-            ? _currentLocation!.latitude
-            : destination.latitude,
-        _currentLocation!.longitude < destination.longitude
-            ? _currentLocation!.longitude
-            : destination.longitude,
-      ),
-      northeast: LatLng(
-        _currentLocation!.latitude > destination.latitude
-            ? _currentLocation!.latitude
-            : destination.latitude,
-        _currentLocation!.longitude > destination.longitude
-            ? _currentLocation!.longitude
-            : destination.longitude,
-      ),
-    );
+        final routes = data['routes'];
+        if (routes == null || routes.isEmpty) {
+          print(response.body);
+          debugPrint('No se encontró una ruta.');
+          return;
+        }
 
-    _mapController.animateCamera(CameraUpdate.newLatLngBounds(bounds, 100));
+        final overviewPolyline = routes[0]['overview_polyline'];
+        final points = overviewPolyline['points'];
+
+        final decodedPoints = PolylinePoints().decodePolyline(points);
+        final polyline = Polyline(
+          polylineId: const PolylineId('route'),
+          color: Colors.blue,
+          width: 6,
+          points:
+              decodedPoints
+                  .map((e) => LatLng(e.latitude, e.longitude))
+                  .toList(),
+        );
+
+        setState(() => _polylines = {polyline});
+
+        final bounds = LatLngBounds(
+          southwest: LatLng(
+            _currentLocation!.latitude < destination.latitude
+                ? _currentLocation!.latitude
+                : destination.latitude,
+            _currentLocation!.longitude < destination.longitude
+                ? _currentLocation!.longitude
+                : destination.longitude,
+          ),
+          northeast: LatLng(
+            _currentLocation!.latitude > destination.latitude
+                ? _currentLocation!.latitude
+                : destination.latitude,
+            _currentLocation!.longitude > destination.longitude
+                ? _currentLocation!.longitude
+                : destination.longitude,
+          ),
+        );
+
+        _mapController.animateCamera(CameraUpdate.newLatLngBounds(bounds, 100));
+      } else {
+        debugPrint('Error en la Directions API: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Error obteniendo ruta: $e');
+    }
   }
 
   Future<Uint8List> getBytesFromAsset(String path, int width) async {
@@ -356,8 +387,10 @@ class MapViewState extends State<MapView> {
                         ),
                       ),
                       onPressed: () {
-                        _drawRouteTo(LatLng(pozo.latitude, pozo.longitude));
-                        Navigator.pop(context); // cierra el modal
+                        _getRoutePolyline(
+                          LatLng(pozo.latitude, pozo.longitude),
+                        );
+                        Navigator.pop(context);
                       },
                       icon: const Icon(
                         Icons.route,
