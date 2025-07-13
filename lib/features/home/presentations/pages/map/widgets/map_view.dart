@@ -9,6 +9,8 @@ import 'package:saviaqua/features/home/data/pozo_data/pozo_service.dart';
 import 'package:saviaqua/features/home/data/pozo_detail_data/pozo_details_service.dart';
 import 'package:saviaqua/features/home/model/pozo/pozo_model.dart';
 import 'package:saviaqua/features/home/model/pozo_details/pozo_details_model.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MapView extends StatefulWidget {
   const MapView({super.key});
@@ -33,10 +35,107 @@ class MapViewState extends State<MapView> {
   PozoDetailsModel? pozoDetailsModel;
   bool filtersApplied = false;
 
+  // Variables para ubicación actual
+  LatLng? _currentLocation;
+  bool _locationPermissionGranted = false;
+
+  // linea de ruta
+  Set<Polyline> _polylines = {};
+
   @override
   void initState() {
     super.initState();
     _loadCustomMarker();
+    _getCurrentLocation();
+  }
+
+  // Método para obtener la ubicación actual
+  Future<void> _getCurrentLocation() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        return;
+      }
+
+      Position position = await Geolocator.getCurrentPosition();
+      if (mounted) {
+        setState(() {
+          _currentLocation = LatLng(position.latitude, position.longitude);
+          _locationPermissionGranted = true;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error al obtener ubicación: $e");
+    }
+  }
+
+  // Método para abrir navegación
+  Future<void> _openNavigation(double lat, double lng) async {
+    final String googleMapsUrl =
+        'https://www.google.com/maps/dir/?api=1'
+        '&origin=${_currentLocation!.latitude},${_currentLocation!.longitude}'
+        '&destination=$lat,$lng&travelmode=driving';
+    final Uri url = Uri.parse(googleMapsUrl);
+
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No se pudo abrir la navegación')),
+        );
+      }
+    }
+  }
+
+  void _drawRouteTo(LatLng destination) {
+    if (_currentLocation == null) return;
+
+    final polylineId = const PolylineId('user_to_pozo');
+
+    final polyline = Polyline(
+      polylineId: polylineId,
+      color: Colors.blueAccent,
+      width: 5,
+      points: [_currentLocation!, destination],
+    );
+
+    setState(() {
+      _polylines = {polyline};
+    });
+
+    final bounds = LatLngBounds(
+      southwest: LatLng(
+        _currentLocation!.latitude < destination.latitude
+            ? _currentLocation!.latitude
+            : destination.latitude,
+        _currentLocation!.longitude < destination.longitude
+            ? _currentLocation!.longitude
+            : destination.longitude,
+      ),
+      northeast: LatLng(
+        _currentLocation!.latitude > destination.latitude
+            ? _currentLocation!.latitude
+            : destination.latitude,
+        _currentLocation!.longitude > destination.longitude
+            ? _currentLocation!.longitude
+            : destination.longitude,
+      ),
+    );
+
+    _mapController.animateCamera(CameraUpdate.newLatLngBounds(bounds, 100));
   }
 
   Future<Uint8List> getBytesFromAsset(String path, int width) async {
@@ -166,7 +265,7 @@ class MapViewState extends State<MapView> {
       builder:
           (_) => Container(
             padding: const EdgeInsets.all(16),
-            height: 240,
+            height: 280, // Aumentado para el botón de navegación
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -240,32 +339,89 @@ class MapViewState extends State<MapView> {
 
                 const Spacer(),
 
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 10,
+                // Botones de acción
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // Botón ver ruta
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                      onPressed: () {
+                        _drawRouteTo(LatLng(pozo.latitude, pozo.longitude));
+                        Navigator.pop(context); // cierra el modal
+                      },
+                      icon: const Icon(
+                        Icons.route,
+                        size: 16,
+                        color: Colors.white,
+                      ),
+                      label: const Text(
+                        'Ver ruta',
+                        style: TextStyle(color: Colors.white),
                       ),
                     ),
-                    onPressed: () {
-                      context.push('/home/pozo/${pozo.codigo}');
-                    },
-                    icon: const Icon(
-                      Icons.arrow_forward_ios,
-                      size: 16,
-                      color: Colors.white,
+
+                    // Botón de navegación
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      onPressed: () {
+                        _openNavigation(pozo.latitude, pozo.longitude);
+                      },
+                      icon: const Icon(
+                        Icons.directions,
+                        size: 16,
+                        color: Colors.white,
+                      ),
+                      label: const Text(
+                        'Cómo llegar',
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
-                    label: const Text(
-                      'Ver más',
-                      style: TextStyle(color: Colors.white),
+
+                    // Botón ver más
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      onPressed: () {
+                        context.push('/home/pozo/${pozo.codigo}');
+                      },
+                      icon: const Icon(
+                        Icons.arrow_forward_ios,
+                        size: 16,
+                        color: Colors.white,
+                      ),
+                      label: const Text(
+                        'Ver más',
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ],
             ),
@@ -287,10 +443,34 @@ class MapViewState extends State<MapView> {
               _controller.complete(controller);
               _mapController = controller;
             },
+            polylines: _polylines,
             markers: _markers,
-            myLocationEnabled: true,
+            myLocationEnabled: _locationPermissionGranted,
+            myLocationButtonEnabled: true,
             zoomControlsEnabled: false,
           ),
+
+          // Botón para centrar en ubicación actual
+          if (_locationPermissionGranted && _currentLocation != null)
+            Positioned(
+              top: 20,
+              right: 20,
+              child: FloatingActionButton(
+                mini: true,
+                backgroundColor: Colors.white,
+                onPressed: () {
+                  if (_currentLocation != null) {
+                    _mapController.animateCamera(
+                      CameraUpdate.newCameraPosition(
+                        CameraPosition(target: _currentLocation!, zoom: 14.0),
+                      ),
+                    );
+                  }
+                },
+                child: const Icon(Icons.my_location, color: Colors.blue),
+              ),
+            ),
+
           if (!isLoading && _markers.isEmpty)
             Positioned(
               bottom: 20,
