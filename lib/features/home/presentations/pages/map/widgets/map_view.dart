@@ -486,6 +486,7 @@ class MapViewState extends State<MapView> {
               bottom: 10,
               right: 10,
               child: FloatingActionButton(
+                heroTag: 'current_location',
                 mini: true,
                 backgroundColor: Colors.white,
                 onPressed: () {
