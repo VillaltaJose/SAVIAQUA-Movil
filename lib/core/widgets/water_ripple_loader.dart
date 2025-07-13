@@ -67,7 +67,6 @@ class _WaterRippleLoaderState extends State<WaterRippleLoader>
                   );
                 },
               ),
-              const SizedBox(height: 20),
               if (widget.message != null)
                 Text(
                   widget.message!,

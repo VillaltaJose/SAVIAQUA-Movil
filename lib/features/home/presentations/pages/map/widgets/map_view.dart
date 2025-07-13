@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
 import 'package:saviaqua/core/widgets/loading_overlay.dart';
 import 'package:saviaqua/features/home/data/pozo_data/pozo_service.dart';
-import 'package:saviaqua/features/home/data/pozo_detail_data/pozo_details_service.dart';
 import 'package:saviaqua/features/home/model/pozo/pozo_model.dart';
 import 'package:saviaqua/features/home/model/pozo_details/pozo_details_model.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:saviaqua/features/home/presentations/pages/map/widgets/pozo_Details_Bottom_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:http/http.dart' as http;
@@ -35,7 +34,6 @@ class MapViewState extends State<MapView> {
   late BitmapDescriptor _customIcon;
   bool isLoadingDetails = true;
   String errorDetails = '';
-  final PozoDetailsService _pozoDetailsService = PozoDetailsService();
   PozoDetailsModel? pozoDetailsModel;
   bool filtersApplied = false;
   LatLng? _currentLocation;
@@ -230,7 +228,7 @@ class MapViewState extends State<MapView> {
               position: LatLng(pozo.latitude, pozo.longitude),
               icon: _customIcon,
               infoWindow: InfoWindow(title: pozo.nombre),
-              
+
               onTap: () => _onMarkerTapped(pozo),
             );
           }).toSet();
@@ -259,37 +257,6 @@ class MapViewState extends State<MapView> {
     }
   }
 
-  Future<void> _fetchPozoDetailById(int pozoId) async {
-    if (mounted) {
-      setState(() {
-        isLoadingDetails = true;
-      });
-    }
-
-    try {
-      final data = await _pozoDetailsService.getMeasurementByPozoId(pozoId);
-      if (mounted) {
-        setState(() {
-          isLoadingDetails = false;
-          pozoDetailsModel = data;
-        });
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          isLoadingDetails = false;
-          errorDetails = 'Error al cargar los detalles del pozo.';
-        });
-      }
-    }
-  }
-
-  Color _getCloroColor(double cloro) {
-    if (cloro < 0.2) return Colors.blue;
-    if (cloro <= 2.0) return Colors.green;
-    return Colors.red;
-  }
-
   LatLngBounds _getBounds(List<PozoModel> pozos) {
     final swLat = pozos.map((p) => p.latitude).reduce((a, b) => a < b ? a : b);
     final swLng = pozos.map((p) => p.longitude).reduce((a, b) => a < b ? a : b);
@@ -301,155 +268,21 @@ class MapViewState extends State<MapView> {
     );
   }
 
-  void _onMarkerTapped(PozoModel pozo) async {
-    _fetchPozoDetailById(pozo.codigo);
-    if (!context.mounted) return;
-
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      backgroundColor: Colors.white,
-      builder:
-          (_) => Container(
-            padding: const EdgeInsets.all(16),
-            height: 280, 
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  pozo.nombre,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
-                  ),
-                ),
-                const SizedBox(height: 6),
-
-                Text(
-                  '${pozo.ciudad}, ${pozo.provincia} - ${pozo.parroquia}',
-                  style: const TextStyle(fontSize: 14, color: Colors.black54),
-                ),
-
-                if (pozoDetailsModel != null) ...[
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _getCloroColor(
-                        pozoDetailsModel!.cloroResidual,
-                      ).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.water_drop,
-                          size: 24,
-                          color: _getCloroColor(
-                            pozoDetailsModel!.cloroResidual,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Cloro residual: ${pozoDetailsModel!.cloroResidual.toStringAsFixed(2)} ppm',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: _getCloroColor(
-                                    pozoDetailsModel!.cloroResidual,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                'Medido el: ${pozoDetailsModel!.fechaRegistro.toLocal().toString().substring(0, 19)}',
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-
-                const Spacer(),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      onPressed: () {
-                        Navigator.pop(context);
-                        _mostrarRutaEnPanel(pozo);
-                      },
-                      icon: const Icon(
-                        Icons.map,
-                        size: 16,
-                        color: Colors.white,
-                      ),
-                      label: const Text(
-                        'Ver Ruta',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-
-                    ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      onPressed: () {
-                        context.push('/home/pozo/${pozo.codigo}');
-                      },
-                      icon: const Icon(
-                        Icons.arrow_forward_ios,
-                        size: 16,
-                        color: Colors.white,
-                      ),
-                      label: const Text(
-                        'Ver más',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-    );
-  }
-
-  void _mostrarRutaEnPanel(PozoModel pozo) async {
+ void _onMarkerTapped(PozoModel pozo) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    backgroundColor: Colors.white,
+    builder: (_) => PozoDetailsBottomSheet(
+      pozo: pozo,
+      onShowRoute: () => _mostrarRutaEnPanel(pozo),
+    ),
+  );
+}
+void _mostrarRutaEnPanel(PozoModel pozo) async {
     await _getRoutePolyline(LatLng(pozo.latitude, pozo.longitude));
 
     if (!mounted) return;
@@ -832,9 +665,7 @@ class MapViewState extends State<MapView> {
                                                   borderRadius:
                                                       BorderRadius.circular(14),
                                                   border: Border.all(
-                                                    color: Colors
-                                                                .grey
-                                                                .shade300,
+                                                    color: Colors.grey.shade300,
                                                   ),
                                                   boxShadow: const [
                                                     BoxShadow(
@@ -850,16 +681,18 @@ class MapViewState extends State<MapView> {
                                                   children: [
                                                     Container(
                                                       decoration: BoxDecoration(
-                                                        color:Colors
-                                                                    .blue
-                                                                    .shade100,
+                                                        color:
+                                                            Colors
+                                                                .blue
+                                                                .shade100,
                                                         shape: BoxShape.circle,
                                                       ),
                                                       padding:
                                                           const EdgeInsets.all(
                                                             8,
                                                           ),
-                                                      child: Icon(icon,
+                                                      child: Icon(
+                                                        icon,
                                                         color: Colors.white,
                                                         size: 20,
                                                       ),
@@ -871,15 +704,17 @@ class MapViewState extends State<MapView> {
                                                             CrossAxisAlignment
                                                                 .start,
                                                         children: [
-                                                          Text('Paso $index',
+                                                          Text(
+                                                            'Paso $index',
                                                             style: TextStyle(
                                                               fontSize: 13,
                                                               fontWeight:
                                                                   FontWeight
                                                                       .bold,
-                                                              color:Colors
-                                                                          .blueGrey
-                                                                          .shade700,
+                                                              color:
+                                                                  Colors
+                                                                      .blueGrey
+                                                                      .shade700,
                                                             ),
                                                           ),
                                                           const SizedBox(
@@ -896,7 +731,7 @@ class MapViewState extends State<MapView> {
                                                             ),
                                                           ),
                                                           if (stepDistance
-                                                                  .isNotEmpty)
+                                                              .isNotEmpty)
                                                             Padding(
                                                               padding:
                                                                   const EdgeInsets.only(

@@ -25,4 +25,8 @@ class PozoDetailsModel {
       cloroResidual: (json['cloroResidual'] as num).toDouble(),
     );
   }
+  @override
+  String toString() {
+    return 'PozoDetailsModel(fechaRegistro: $fechaRegistro, m1: $m1, m2: $m2, m3: $m3, m4: $m4, cloroResidual: $cloroResidual)';
+  }
 }

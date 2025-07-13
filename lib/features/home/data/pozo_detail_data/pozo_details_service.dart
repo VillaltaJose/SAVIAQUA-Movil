@@ -31,23 +31,26 @@ class PozoDetailsService {
   }
 
   Future<PozoDetailsModel> getMeasurementByPozoId(int codigoPozo) async {
-    final uri = Uri.parse('/pozos/mediciones');
+  final uri = Uri.parse('pozos/$codigoPozo/mediciones/actualidad');
 
-    final response = await _client.post(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'codigoPozo': codigoPozo}),
+  final response = await _client.post(
+    uri,
+    headers: {'Content-Type': 'application/json'},
+  );
+
+print('Response status: ${response.statusCode}');
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    final parsed = PozoDetailsSingleResponse.fromJson(data);
+    print('Parsed response: $parsed');
+    print('Measurement value: ${parsed.value}');
+    return parsed.value;
+  } else {
+    throw Exception(
+      'Error al obtener la medición'
+      ' (${response.statusCode}): ${response.reasonPhrase}',
     );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final parsed = PozoDetailsResponse.fromJson(data);
-      return parsed.value.first;
-    } else {
-      throw Exception(
-        'Error al obtener la medicion'
-        ' (${response.statusCode}): ${response.reasonPhrase}',
-      );
-    }
   }
+}
+
 }
