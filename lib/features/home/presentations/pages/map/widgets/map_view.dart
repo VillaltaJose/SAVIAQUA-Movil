@@ -38,13 +38,19 @@ class MapViewState extends State<MapView> {
   final PozoDetailsService _pozoDetailsService = PozoDetailsService();
   PozoDetailsModel? pozoDetailsModel;
   bool filtersApplied = false;
-
-  // Variables para ubicación actual
   LatLng? _currentLocation;
   bool _locationPermissionGranted = false;
 
-  // linea de ruta
   Set<Polyline> _polylines = {};
+
+  String? _routeDistance;
+  String? _routeDuration;
+  List<dynamic>? _routeSteps;
+  String? _legStartAddress;
+  String? _legEndAddress;
+  bool _isRoutePanelVisible = false;
+  PozoModel? _pozoConRuta;
+  bool _isAtMaxHeight = false;
 
   @override
   void initState() {
@@ -111,7 +117,7 @@ class MapViewState extends State<MapView> {
     final dest = '${destination.latitude},${destination.longitude}';
 
     final url =
-        'https://maps.googleapis.com/maps/api/directions/json?origin=$origin&destination=$dest&key=$apiKey';
+        'https://maps.googleapis.com/maps/api/directions/json?origin=$origin&destination=$dest&key=$apiKey&language=es';
 
     try {
       final response = await http.get(Uri.parse(url));
@@ -120,7 +126,6 @@ class MapViewState extends State<MapView> {
 
         final routes = data['routes'];
         if (routes == null || routes.isEmpty) {
-          print(response.body);
           debugPrint('No se encontró una ruta.');
           return;
         }
@@ -138,6 +143,14 @@ class MapViewState extends State<MapView> {
                   .map((e) => LatLng(e.latitude, e.longitude))
                   .toList(),
         );
+
+        final leg = routes[0]['legs'][0];
+        print('Leg: $leg');
+        _routeDistance = leg['distance']['text'];
+        _routeDuration = leg['duration']['text'];
+        _routeSteps = leg['steps'];
+        _legStartAddress = leg['start_address'];
+        _legEndAddress = leg['end_address'];
 
         setState(() => _polylines = {polyline});
 
@@ -167,6 +180,10 @@ class MapViewState extends State<MapView> {
     } catch (e) {
       debugPrint('Error obteniendo ruta: $e');
     }
+  }
+
+  String _parseHtml(String htmlString) {
+    return htmlString.replaceAll(RegExp(r'<[^>]*>'), '');
   }
 
   Future<Uint8List> getBytesFromAsset(String path, int width) async {
@@ -213,6 +230,7 @@ class MapViewState extends State<MapView> {
               position: LatLng(pozo.latitude, pozo.longitude),
               icon: _customIcon,
               infoWindow: InfoWindow(title: pozo.nombre),
+              
               onTap: () => _onMarkerTapped(pozo),
             );
           }).toSet();
@@ -296,7 +314,7 @@ class MapViewState extends State<MapView> {
       builder:
           (_) => Container(
             padding: const EdgeInsets.all(16),
-            height: 280, // Aumentado para el botón de navegación
+            height: 280, 
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -370,40 +388,9 @@ class MapViewState extends State<MapView> {
 
                 const Spacer(),
 
-                // Botones de acción
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    // Botón ver ruta
-                    ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      onPressed: () {
-                        _getRoutePolyline(
-                          LatLng(pozo.latitude, pozo.longitude),
-                        );
-                        Navigator.pop(context);
-                      },
-                      icon: const Icon(
-                        Icons.route,
-                        size: 16,
-                        color: Colors.white,
-                      ),
-                      label: const Text(
-                        'Ver ruta',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-
-                    // Botón de navegación
                     ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
@@ -416,20 +403,20 @@ class MapViewState extends State<MapView> {
                         ),
                       ),
                       onPressed: () {
-                        _openNavigation(pozo.latitude, pozo.longitude);
+                        Navigator.pop(context);
+                        _mostrarRutaEnPanel(pozo);
                       },
                       icon: const Icon(
-                        Icons.directions,
+                        Icons.map,
                         size: 16,
                         color: Colors.white,
                       ),
                       label: const Text(
-                        'Cómo llegar',
+                        'Ver Ruta',
                         style: TextStyle(color: Colors.white),
                       ),
                     ),
 
-                    // Botón ver más
                     ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
@@ -462,6 +449,17 @@ class MapViewState extends State<MapView> {
     );
   }
 
+  void _mostrarRutaEnPanel(PozoModel pozo) async {
+    await _getRoutePolyline(LatLng(pozo.latitude, pozo.longitude));
+
+    if (!mounted) return;
+
+    setState(() {
+      _pozoConRuta = pozo;
+      _isRoutePanelVisible = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return LoadingOverlay(
@@ -479,15 +477,14 @@ class MapViewState extends State<MapView> {
             polylines: _polylines,
             markers: _markers,
             myLocationEnabled: _locationPermissionGranted,
-            myLocationButtonEnabled: true,
+            myLocationButtonEnabled: false,
             zoomControlsEnabled: false,
           ),
 
-          // Botón para centrar en ubicación actual
           if (_locationPermissionGranted && _currentLocation != null)
             Positioned(
-              top: 20,
-              right: 20,
+              bottom: 10,
+              right: 10,
               child: FloatingActionButton(
                 mini: true,
                 backgroundColor: Colors.white,
@@ -552,8 +549,583 @@ class MapViewState extends State<MapView> {
                 ),
               ),
             ),
+          if (_isRoutePanelVisible && _pozoConRuta != null) ...[
+            DraggableScrollableSheet(
+              initialChildSize: 0.15,
+              minChildSize: 0.15,
+              maxChildSize: 0.80,
+              builder: (context, scrollController) {
+                return NotificationListener<DraggableScrollableNotification>(
+                  onNotification: (notification) {
+                    setState(() {
+                      _isAtMaxHeight = notification.extent >= 0.27;
+                    });
+                    return true;
+                  },
+                  child: Container(
+                    padding: EdgeInsets.only(
+                      top: 10,
+                      bottom: 60,
+                      left: 16,
+                      right: 16,
+                    ),
+
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(20),
+                      ),
+                      boxShadow: [
+                        BoxShadow(color: Colors.black26, blurRadius: 10),
+                      ],
+                    ),
+                    child: Container(
+                      decoration: const BoxDecoration(color: Colors.white),
+                      child: ListView(
+                        controller: scrollController,
+                        padding: EdgeInsets.zero,
+                        children: [
+                          Center(
+                            child: Container(
+                              width: 40,
+                              height: 4,
+                              margin: const EdgeInsets.only(bottom: 12),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[400],
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  _pozoConRuta!.nombre,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                width: 26,
+                                height: 26,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  shape: BoxShape.circle,
+                                ),
+                                child: IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _isRoutePanelVisible = false;
+                                      _pozoConRuta = null;
+                                      _routeDistance = null;
+                                      _routeDuration = null;
+                                      _polylines.clear();
+                                    });
+                                  },
+                                  icon: const Icon(
+                                    Icons.close,
+                                    color: Colors.black87,
+                                    size: 15,
+                                  ),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (_routeDistance != null && _routeDuration != null)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  margin: const EdgeInsets.only(top: 12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: Colors.blueGrey.shade100,
+                                    ),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Colors.black12,
+                                        blurRadius: 6,
+                                        offset: Offset(0, 3),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.route,
+                                            color: Colors.blue,
+                                            size: 24,
+                                          ),
+                                          const SizedBox(width: 10),
+                                          const Text(
+                                            'Resumen de la ruta',
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.blue,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 12),
+
+                                      Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.timer,
+                                            size: 20,
+                                            color: Colors.black54,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            '$_routeDuration',
+                                            style: const TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 16),
+                                          const Icon(
+                                            Icons.social_distance,
+                                            size: 20,
+                                            color: Colors.black54,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            '$_routeDistance',
+                                            style: const TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+
+                                      const Divider(height: 24, thickness: 1.2),
+
+                                      Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const Icon(
+                                            Icons.location_on,
+                                            color: Colors.green,
+                                            size: 20,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              'Desde: ${_legStartAddress ?? "N/A"}',
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.black87,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const Icon(
+                                            Icons.flag,
+                                            color: Colors.redAccent,
+                                            size: 20,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              'Hasta: ${_legEndAddress ?? "N/A"}',
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.black87,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                const SizedBox(height: 16),
+
+                                const Text(
+                                  'Instrucciones paso a paso:',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+
+                                if (_routeSteps != null)
+                                  Column(
+                                    children:
+                                        _routeSteps!.asMap().entries.expand((
+                                          entry,
+                                        ) {
+                                          final index = entry.key + 1;
+                                          final step = entry.value;
+                                          String instructionText = _parseHtml(
+                                            step['html_instructions'],
+                                          );
+                                          final stepDistance =
+                                              step['distance']?['text'] ?? '';
+                                          final icon = _getStepIcon(
+                                            instructionText,
+                                          );
+                                          final isLastStep =
+                                              entry.key ==
+                                              _routeSteps!.length - 1;
+
+                                          String? destinationPhrase;
+                                          final destinoRegex = RegExp(
+                                            r'(tu destino está.*|has llegado.*|you have arrived.*|your destination is.*|El destino es.*)',
+                                            caseSensitive: false,
+                                          );
+                                          final match = destinoRegex.firstMatch(
+                                            instructionText,
+                                          );
+                                          if (isLastStep && match != null) {
+                                            destinationPhrase = match.group(0);
+                                            instructionText =
+                                                instructionText
+                                                    .replaceAll(
+                                                      destinationPhrase!,
+                                                      '',
+                                                    )
+                                                    .trim();
+                                          }
+
+                                          List<Widget> widgets = [];
+
+                                          if (instructionText.isNotEmpty) {
+                                            widgets.add(
+                                              Container(
+                                                margin:
+                                                    const EdgeInsets.symmetric(
+                                                      vertical: 8,
+                                                    ),
+                                                padding: const EdgeInsets.all(
+                                                  14,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.grey.shade50,
+                                                  borderRadius:
+                                                      BorderRadius.circular(14),
+                                                  border: Border.all(
+                                                    color: Colors
+                                                                .grey
+                                                                .shade300,
+                                                  ),
+                                                  boxShadow: const [
+                                                    BoxShadow(
+                                                      color: Colors.black12,
+                                                      blurRadius: 3,
+                                                      offset: Offset(0, 1),
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Row(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Container(
+                                                      decoration: BoxDecoration(
+                                                        color:Colors
+                                                                    .blue
+                                                                    .shade100,
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            8,
+                                                          ),
+                                                      child: Icon(icon,
+                                                        color: Colors.white,
+                                                        size: 20,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 14),
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text('Paso $index',
+                                                            style: TextStyle(
+                                                              fontSize: 13,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color:Colors
+                                                                          .blueGrey
+                                                                          .shade700,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                            height: 4,
+                                                          ),
+                                                          Text(
+                                                            instructionText,
+                                                            style: const TextStyle(
+                                                              fontSize: 14,
+                                                              height: 1.4,
+                                                              color:
+                                                                  Colors
+                                                                      .black87,
+                                                            ),
+                                                          ),
+                                                          if (stepDistance
+                                                                  .isNotEmpty)
+                                                            Padding(
+                                                              padding:
+                                                                  const EdgeInsets.only(
+                                                                    top: 6,
+                                                                  ),
+                                                              child: Row(
+                                                                children: [
+                                                                  const Icon(
+                                                                    Icons
+                                                                        .straighten,
+                                                                    size: 16,
+                                                                    color:
+                                                                        Colors
+                                                                            .grey,
+                                                                  ),
+                                                                  const SizedBox(
+                                                                    width: 6,
+                                                                  ),
+                                                                  Text(
+                                                                    stepDistance,
+                                                                    style: const TextStyle(
+                                                                      fontSize:
+                                                                          13,
+                                                                      color:
+                                                                          Colors
+                                                                              .black54,
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            );
+                                          }
+
+                                          if (destinationPhrase != null &&
+                                              destinationPhrase.isNotEmpty) {
+                                            widgets.add(
+                                              Container(
+                                                margin:
+                                                    const EdgeInsets.symmetric(
+                                                      vertical: 8,
+                                                    ),
+                                                padding: const EdgeInsets.all(
+                                                  14,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.green.shade100,
+                                                  borderRadius:
+                                                      BorderRadius.circular(14),
+                                                  border: Border.all(
+                                                    color:
+                                                        Colors.green.shade400,
+                                                  ),
+                                                  boxShadow: const [
+                                                    BoxShadow(
+                                                      color: Colors.black12,
+                                                      blurRadius: 3,
+                                                      offset: Offset(0, 1),
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Row(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Container(
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.green,
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            8,
+                                                          ),
+                                                      child: const Icon(
+                                                        Icons.flag,
+                                                        color: Colors.white,
+                                                        size: 20,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 14),
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text(
+                                                            'Llegada',
+                                                            style: TextStyle(
+                                                              fontSize: 13,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color:
+                                                                  Colors
+                                                                      .green
+                                                                      .shade900,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                            height: 4,
+                                                          ),
+                                                          Text(
+                                                            destinationPhrase,
+                                                            style: const TextStyle(
+                                                              fontSize: 14,
+                                                              height: 1.4,
+                                                              color:
+                                                                  Colors
+                                                                      .black87,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            );
+                                          }
+
+                                          return widgets;
+                                        }).toList(),
+                                  ),
+                              ],
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border(
+                    bottom: const BorderSide(color: Colors.black12, width: 1.5),
+                    top:
+                        _isAtMaxHeight
+                            ? const BorderSide(
+                              color: Colors.black12,
+                              width: 1.5,
+                            )
+                            : BorderSide.none,
+                  ),
+                ),
+                padding: const EdgeInsets.only(
+                  top: 2,
+                  bottom: 5,
+                  left: 40,
+                  right: 40,
+                ),
+                child: SafeArea(
+                  top: false,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      elevation: 0.3,
+                      minimumSize: const Size.fromHeight(40),
+                    ),
+                    onPressed: () {
+                      _openNavigation(
+                        _pozoConRuta!.latitude,
+                        _pozoConRuta!.longitude,
+                      );
+                    },
+                    icon: const Icon(
+                      Icons.directions,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    label: const Text(
+                      'Cómo llegar',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
+  }
+}
+
+IconData _getStepIcon(String instruction) {
+  instruction = instruction.toLowerCase();
+  if (instruction.contains("walk") || instruction.contains("caminar")) {
+    return Icons.directions_walk;
+  } else if (instruction.contains("turn right") ||
+      instruction.contains("gira a la derecha")) {
+    return Icons.turn_slight_right;
+  } else if (instruction.contains("turn left") ||
+      instruction.contains("gira a la izquierda")) {
+    return Icons.turn_slight_left;
+  } else if (instruction.contains("head") ||
+      instruction.contains("sigue recto")) {
+    return Icons.straight;
+  } else if (instruction.contains("bus") ||
+      instruction.contains("transporte público")) {
+    return Icons.directions_bus;
+  } else if (instruction.contains("bike") ||
+      instruction.contains("bicicleta")) {
+    return Icons.directions_bike;
+  } else {
+    return Icons.navigation;
   }
 }
